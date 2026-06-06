@@ -78,7 +78,8 @@ export default function HistoryPage() {
         </div>
       ) : (
         <div className="border border-zinc-800 rounded-2xl overflow-hidden">
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[600px]">
             <thead>
               <tr className="border-b border-zinc-800 bg-zinc-900/50">
                 <th className="font-mono text-[10px] text-zinc-500 uppercase text-left px-4 py-3">Date</th>
@@ -108,6 +109,7 @@ export default function HistoryPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>
