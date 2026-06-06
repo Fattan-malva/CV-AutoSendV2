@@ -54,12 +54,12 @@ export default function Sidebar({ onUpgrade, onLogout }: { onUpgrade: () => void
               onClick={() => router.push(link.href)}
               className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg font-mono text-xs text-left transition-colors ${
                 active === link.id
-                  ? 'bg-green-400/10 text-green-400 border border-green-400/20'
+                  ? 'bg-green-400/10 border border-green-400/20'
                   : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
               }`}
             >
-              <Icon className="w-4 h-4" />
-              <span>
+              <Icon className={`w-4 h-4 ${active === link.id ? 'text-zinc-400 md:text-green-400' : ''}`} />
+              <span className={active === link.id ? 'text-zinc-400 md:text-green-400' : ''}>
                 {link.id === 'dashboard'
                   ? t.dashboard.title
                   : link.id === 'history'

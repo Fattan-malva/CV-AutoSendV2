@@ -99,7 +99,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
             <div className="flex items-center gap-2 font-mono text-sm text-zinc-400">
               <span className="text-zinc-600">~</span>
-              <span className="text-green-400">{pageTitle.toLowerCase()}</span>
+              <span className="text-zinc-400">{pageTitle.toLowerCase()}</span>
               <span className="text-zinc-600">$</span>
               <div className="w-2 h-4 bg-green-400 animate-blink" />
             </div>
