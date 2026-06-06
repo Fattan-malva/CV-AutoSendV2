@@ -1,37 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import { doc, getDoc, updateDoc, increment } from 'firebase/firestore'
+import { useCallback, useRef, useEffect, useState } from 'react'
 import { ArrowRight, FileText, Upload, X, AlertCircle } from 'lucide-react'
-import { db } from '@/lib/firebase'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n-context'
-import { decrypt } from '@/lib/crypto'
-import UpgradeModal from './UpgradeModal'
+import { useProcessing } from '@/lib/processing-context'
 import WindowFrame from '@/components/ui/WindowFrame'
 import Skeleton from '@/components/ui/Skeleton'
-import type { AnalysisResult, UserConfig } from '@/types'
-
-interface BulkItem {
-  id: string
-  file: File
-  status: 'pending' | 'analyzing' | 'done' | 'error' | 'sent'
-  error?: string
-  result?: AnalysisResult
-  editable: {
-    subjek: string
-    nama_perusahaan: string
-    posisi: string
-    intro: string
-    alasan: string
-    penutup: string
-    email: string
-  }
-  selected: boolean
-  expanded: boolean
-  sending: boolean
-}
+import type { AnalysisResult } from '@/types'
 
 function GrowableTextarea({ value, onChange, className, placeholder }: {
   value: string
@@ -133,14 +109,14 @@ function FileStatusBadge({ status, isAnalyzing, isSending }: { status: string; i
     )
   }
 
-  const statusConfig = {
+  const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
     pending: { label: t.dashboard.fileStatus.pending, color: 'text-zinc-500', bg: 'bg-zinc-800/50' },
     done: { label: t.dashboard.fileStatus.done, color: 'text-green-400', bg: 'bg-green-400/10' },
     sent: { label: t.dashboard.fileStatus.sent, color: 'text-green-400', bg: 'bg-green-400/10' },
     error: { label: t.dashboard.fileStatus.error, color: 'text-red-400', bg: 'bg-red-500/10' },
   }
 
-  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending
+  const config = statusConfig[status] || statusConfig.pending
 
   return (
     <span className={`font-mono text-[10px] px-2 py-0.5 rounded-full ${config.bg} ${config.color}`}>
@@ -150,188 +126,18 @@ function FileStatusBadge({ status, isAnalyzing, isSending }: { status: string; i
 }
 
 export default function DashboardClient() {
-  const { user, loading: authLoading } = useAuth()
+  const { user } = useAuth()
   const { t } = useI18n()
-  const router = useRouter()
-
-  const [config, setConfig_] = useState<UserConfig | null>(null)
-  const [configLoading, setConfigLoading] = useState(true)
-  const [configError, setConfigError] = useState(false)
-  const [items, setItems] = useState<BulkItem[]>([])
-  const [upgradeOpen, setUpgradeOpen] = useState(false)
-  const [bulkRunning, setBulkRunning] = useState(false)
-  const [bulkProgress, setBulkProgress] = useState({ done: 0, total: 0 })
-  const [sendingBulk, setSendingBulk] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
-
-  const setConfig = useCallback((c: UserConfig) => { setConfig_(c); setConfigError(false) }, [])
-
-  useEffect(() => {
-    if (authLoading) return
-    if (!user) { router.push('/'); return }
-    if (!db) { setConfigLoading(false); setConfigError(true); return }
-
-    const load = async () => {
-      try {
-        const snap = await getDoc(doc(db!, 'users', user.uid))
-        if (snap.exists()) {
-          setConfig(snap.data() as UserConfig)
-          setConfigLoading(false)
-        } else {
-          setConfigLoading(false)
-          setConfigError(true)
-        }
-      } catch {
-        setConfigLoading(false)
-        setConfigError(true)
-      }
-    }
-    load()
-  }, [user, authLoading, router, setConfig])
-
-  const updateItem = useCallback((id: string, patch: Partial<BulkItem>) => {
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)))
-  }, [])
-
-  const addFiles = useCallback((files: File[]) => {
-    const newItems: BulkItem[] = files.map((f) => ({
-      id: crypto.randomUUID(),
-      file: f,
-      status: 'pending',
-      editable: { subjek: '', nama_perusahaan: '', posisi: '', intro: '', alasan: '', penutup: '', email: '' },
-      selected: true,
-      expanded: false,
-      sending: false,
-    }))
-    setItems((prev) => [...prev, ...newItems])
-    setTimeout(() => { analyzeAllPending() }, 100)
-  }, [])
-
-  const analyzeSingle = async (item: BulkItem) => {
-    updateItem(item.id, { status: 'analyzing', error: undefined })
-    try {
-      const toBase64 = (f: File): Promise<string> =>
-        new Promise((resolve, reject) => {
-          const reader = new FileReader()
-          reader.onload = () => resolve((reader.result as string).split(',')[1])
-          reader.onerror = reject
-          reader.readAsDataURL(f)
-        })
-      const imageData = await toBase64(item.file)
-      const token = await user!.getIdToken()
-      const res = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          imageData, mimeType: item.file.type, uid: user!.uid,
-          senderName: config?.senderName || user?.displayName || '',
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Gagal menganalisis')
-
-      const result = data as AnalysisResult
-      updateItem(item.id, {
-        status: 'done', result,
-        editable: {
-          subjek: decrypt(result.subjek), nama_perusahaan: result.nama_perusahaan,
-          posisi: result.posisi, intro: decrypt(result.intro),
-          alasan: decrypt(result.alasan), penutup: decrypt(result.penutup), email: result.email,
-        },
-        expanded: true,
-      })
-      if (db) {
-        await updateDoc(doc(db!, 'users', user!.uid), { usageAnalyze: increment(1) })
-        setConfig_((prev) => prev ? { ...prev, usageAnalyze: prev.usageAnalyze + 1 } : prev)
-      }
-    } catch (e) {
-      updateItem(item.id, { status: 'error', error: e instanceof Error ? e.message : 'Gagal menganalisis' })
-    }
-  }
-
-  const sendSingleItem = async (item: BulkItem) => {
-    if (!config || !user) return
-
-    if (!config.smtpPass) {
-      updateItem(item.id, { status: 'error', error: 'App password not configured. Please set it in profile settings.', sending: false })
-      return
-    }
-    if (!config.cvPath) {
-      updateItem(item.id, { status: 'error', error: 'CV not uploaded. Please upload it in profile settings.', sending: false })
-      return
-    }
-    if (!item.editable.email) {
-      updateItem(item.id, { status: 'error', error: 'Recipient email is required.', sending: false })
-      return
-    }
-
-    updateItem(item.id, { sending: true })
-    try {
-      const token = await user.getIdToken()
-      const res = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          subjek: item.editable.subjek, intro: item.editable.intro,
-          alasan: item.editable.alasan, penutup: item.editable.penutup,
-          email: item.editable.email, fileUrl: config.cvPath, fileName: 'CV.pdf',
-        }),
-      })
-
-      const data = await res.json()
-      if (!res.ok) {
-        if (res.status === 403 && data.usage) { setUpgradeOpen(true) }
-        else { throw new Error(data.error || 'Send failed') }
-        return
-      }
-
-      updateItem(item.id, { status: 'sent', sending: false })
-      if (db) {
-        await updateDoc(doc(db, 'users', user.uid), { usageSend: increment(1) })
-        setConfig_((prev) => prev ? { ...prev, usageSend: prev.usageSend + 1 } : prev)
-      }
-    } catch (e) {
-      updateItem(item.id, { status: 'error', error: e instanceof Error ? e.message : 'Send failed', sending: false })
-    }
-  }
-
-  const sendAllDone = async () => {
-    const done = items.filter((i) => i.status === 'done' && i.selected)
-    if (done.length === 0) return
-    setSendingBulk(true)
-    await Promise.allSettled(done.map((item) => sendSingleItem(item)))
-    setSendingBulk(false)
-  }
-
-  const planLimits: Record<string, { analyze: number; send: number }> = {
-    free: { analyze: 3, send: 3 },
-    basic: { analyze: 20, send: 20 },
-    starter: { analyze: 80, send: 80 },
-    pro: { analyze: Infinity, send: Infinity },
-  }
-
-  const analyzeAllPending = async () => {
-    const pending = items.filter((i) => i.status === 'pending')
-    if (pending.length === 0) return
-
-    const limits = planLimits[config?.plan || 'free']
-    const remaining = limits.analyze - (config?.usageAnalyze || 0)
-    if (remaining <= 0) { setUpgradeOpen(true); return }
-
-    setBulkRunning(true)
-    setBulkProgress({ done: 0, total: pending.length })
-
-    await Promise.allSettled(pending.map(async (item) => {
-      await analyzeSingle(item)
-      setBulkProgress((p) => ({ ...p, done: p.done + 1 }))
-    }))
-
-    setBulkRunning(false)
-  }
+  const {
+    config, items, bulkRunning, bulkProgress, sendingBulk,
+    addFiles, removeItem, toggleSelect, toggleExpanded, updateItem,
+    analyzeAllPending, analyzeSingle, sendAllDone, sendSingleItem, clearAll,
+    upgradeOpen, setUpgradeOpen,
+  } = useProcessing()
 
   const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault()
-    setIsDragging(false)
     const files = Array.from(e.dataTransfer.files).filter(
       (f) => f.type.startsWith('image/') || f.type === 'application/pdf'
     )
@@ -344,49 +150,11 @@ export default function DashboardClient() {
     e.target.value = ''
   }, [addFiles])
 
-  const removeItem = useCallback((id: string) => {
-    setItems((prev) => prev.filter((i) => i.id !== id))
-  }, [])
-
-  const toggleSelect = useCallback((id: string) => {
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, selected: !i.selected } : i)))
-  }, [])
-
-  const toggleExpanded = useCallback((id: string) => {
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, expanded: !i.expanded } : i)))
-  }, [])
-
-  if (authLoading || configLoading) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-8 w-48 rounded-lg" />
-        <div className="grid gap-6">
-          <div className="border border-zinc-800 rounded-2xl p-6 space-y-4">
-            <Skeleton className="h-32 w-full rounded-xl" />
-            <Skeleton className="h-4 w-3/4 rounded" />
-            <Skeleton className="h-4 w-1/2 rounded" />
-          </div>
-          <div className="border border-zinc-800 rounded-2xl p-6 space-y-4">
-            <Skeleton className="h-12 w-full rounded" />
-            <Skeleton className="h-12 w-full rounded" />
-            <Skeleton className="h-12 w-full rounded" />
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  if (configError || !config) {
+  if (!config) {
     return (
       <div className="flex items-center justify-center py-20">
-        <WindowFrame title="~/error" accent="green" className="max-w-md mx-4 p-6 text-center">
-          <p className="font-mono text-sm text-zinc-400">{t.dashboard.configError}</p>
-          <button
-            onClick={() => { setConfigLoading(true); setConfigError(false); window.location.reload() }}
-            className="mt-4 font-mono text-xs bg-green-400 text-zinc-950 px-4 py-2 rounded-lg font-medium hover:bg-green-300 transition-colors"
-          >
-            {'>_'} {t.dashboard.retry}
-          </button>
+        <WindowFrame title="~/loading" accent="green" className="max-w-md mx-4 p-6 text-center">
+          <Skeleton className="w-8 h-8 rounded-full mx-auto" />
         </WindowFrame>
       </div>
     )
@@ -396,7 +164,13 @@ export default function DashboardClient() {
   const doneCount = items.filter((i) => i.status === 'done' && i.selected).length
   const usageAnalyze = config?.usageAnalyze || 0
   const usageSend = config?.usageSend || 0
-  const limits = planLimits[config.plan] || planLimits.free
+  const planLimitsMap: Record<string, { analyze: number; send: number }> = {
+    free: { analyze: 3, send: 3 },
+    basic: { analyze: 20, send: 20 },
+    starter: { analyze: 80, send: 80 },
+    pro: { analyze: Infinity, send: Infinity },
+  }
+  const limits = planLimitsMap[config.plan] || planLimitsMap.free
   const isPro = config.plan === 'pro'
   const analyzeLimit = limits.analyze
   const sendLimit = limits.send
@@ -512,7 +286,7 @@ export default function DashboardClient() {
               <>{t.dashboard.sendSelected.replace('{count}', String(doneCount))}</>
             )}
           </button>
-          <button onClick={() => setItems([])} className="text-zinc-600 hover:text-zinc-400 font-mono text-xs transition-colors">
+          <button onClick={clearAll} className="text-zinc-600 hover:text-zinc-400 font-mono text-xs transition-colors">
             {t.dashboard.clearAll}
           </button>
           <span className="font-mono text-xs text-zinc-600 ml-auto">
@@ -639,8 +413,6 @@ export default function DashboardClient() {
           ))}
         </div>
       )}
-
-      <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
     </>
   )
 }

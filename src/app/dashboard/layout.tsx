@@ -1,25 +1,26 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { doc, getDoc } from 'firebase/firestore'
-import { Sun, Moon, Menu } from 'lucide-react'
+import { Sun, Moon, Menu, Loader } from 'lucide-react'
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n-context'
 import { useTheme } from '@/lib/theme-context'
+import { ProcessingProvider, useProcessing } from '@/lib/processing-context'
 import Sidebar from '@/components/dashboard/Sidebar'
 import UpgradeModal from '@/components/dashboard/UpgradeModal'
 import ConfirmLogoutModal from '@/components/dashboard/ConfirmLogoutModal'
 import Skeleton from '@/components/ui/Skeleton'
 import type { UserConfig } from '@/types'
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+function DashboardShell({ children }: { children: React.ReactNode }) {
   const { user, loading: authLoading } = useAuth()
   const { t, locale, setLocale } = useI18n()
   const { theme, toggleTheme } = useTheme()
-  const router = useRouter()
   const pathname = usePathname()
+  const { bulkRunning, sendingBulk, upgradeOpen, setUpgradeOpen, config } = useProcessing()
 
   const pageTitle = pathname === '/dashboard/history'
     ? t.dashboard.history
@@ -27,23 +28,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     ? t.dashboard.settings
     : t.dashboard.title
 
-  const [config, setConfig_] = useState<UserConfig | null>(null)
-  const [upgradeOpen, setUpgradeOpen] = useState(false)
   const [logoutOpen, setLogoutOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-
-  useEffect(() => {
-    if (authLoading) return
-    if (!user) { router.push('/'); return }
-    if (!db) return
-    const load = async () => {
-      try {
-        const snap = await getDoc(doc(db!, 'users', user.uid))
-        if (snap.exists()) setConfig_(snap.data() as UserConfig)
-      } catch { /* ignore */ }
-    }
-    load()
-  }, [user, authLoading, router])
 
   if (authLoading) {
     return (
@@ -103,6 +89,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span className="text-zinc-600">$</span>
               <div className="w-2 h-4 bg-green-400 animate-blink" />
             </div>
+            {/* Processing indicator */}
+            {(bulkRunning || sendingBulk) && (
+              <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                <Loader className="w-3 h-3 text-amber-400 animate-spin" />
+                <span className="font-mono text-[10px] text-amber-400 uppercase">
+                  {bulkRunning ? t.dashboard.analyzing : t.dashboard.sending}
+                </span>
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-zinc-900 rounded-lg border border-zinc-800">
@@ -134,5 +129,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <UpgradeModal open={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
       <ConfirmLogoutModal open={logoutOpen} onClose={() => setLogoutOpen(false)} />
     </div>
+  )
+}
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { user, loading: authLoading } = useAuth()
+  const [config, setConfig_] = useState<UserConfig | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    if (authLoading) return
+    if (!user) { router.push('/'); return }
+    if (!db) return
+    getDoc(doc(db!, 'users', user.uid)).then((snap) => {
+      if (snap.exists()) setConfig_(snap.data() as UserConfig)
+    }).catch(() => {})
+  }, [user, authLoading, router])
+
+  if (authLoading) {
+    return (
+      <div className="h-screen overflow-hidden flex items-center justify-center">
+        <Skeleton className="w-8 h-8 rounded-full" />
+      </div>
+    )
+  }
+
+  if (!user) return null
+
+  return (
+    <ProcessingProvider user={user} config={config} onConfigUpdate={setConfig_}>
+      <DashboardShell>{children}</DashboardShell>
+    </ProcessingProvider>
   )
 }
