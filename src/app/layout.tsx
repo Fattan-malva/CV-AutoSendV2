@@ -14,8 +14,25 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CV-AutoSend",
-  description: "Analisis brosur lowongan kerja dan kirim CV via email otomatis",
+  metadataBase: new URL('https://cv-auto-send.vercel.app'),
+  title: {
+    default: 'CV-AutoSend | Kirim CV Otomatis dengan AI',
+    template: '%s | CV-AutoSend',
+  },
+  description: 'Upload brosur lowongan kerja, AI analisis otomatis, kirim CV + email lamaran dalam 1 klik. Gratis!',
+  openGraph: {
+    title: 'CV-AutoSend',
+    description: 'Upload brosur, AI analisis, kirim CV + email lamaran dalam 1 klik.',
+    siteName: 'CV-AutoSend',
+    locale: 'id_ID',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CV-AutoSend',
+    description: 'Upload brosur, AI analisis, kirim CV + email lamaran dalam 1 klik.',
+  },
+  robots: 'index, follow',
 };
 
 export default function RootLayout({
@@ -25,6 +42,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" className={`${geistSans.variable} ${geistMono.variable} antialiased`} suppressHydrationWarning>
+      <head>
+        <meta name="google-site-verification" content="rI7_KVJLSLI14pRvrIbFXuVJJ_Kbp5SCQnnZwDniQ2Q" />
+      </head>
       <body className="min-h-screen">
         <Providers>{children}</Providers>
       </body>
