@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-neon: #22ff66;
+  --color-neon-dim: #18cc52;
+  --color-zinc-50: var(--shade-50);
+  --color-zinc-100: var(--shade-100);
+  --color-zinc-200: var(--shade-200);
+  --color-zinc-300: var(--shade-300);
+  --color-zinc-400: var(--shade-400);
+  --color-zinc-500: var(--shade-500);
+  --color-zinc-600: var(--shade-600);
+  --color-zinc-700: var(--shade-700);
+  --color-zinc-800: var(--shade-800);
+  --color-zinc-900: var(--shade-900);
+  --color-zinc-950: var(--shade-950);
+}
+
+:root {
+  --shade-50: #fafafa;
+  --shade-100: #f4f4f5;
+  --shade-200: #e4e4e7;
+  --shade-300: #d4d4d8;
+  --shade-400: #a1a1aa;
+  --shade-500: #71717a;
+  --shade-600: #52525b;
+  --shade-700: #3f3f46;
+  --shade-800: #27272a;
+  --shade-900: #18181b;
+  --shade-950: #09090b;
+  --background: #09090b;
+  --foreground: #e4e4e7;
+  --overlay: rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="light"] {
+  --shade-50: #09090b;
+  --shade-100: #18181b;
+  --shade-200: #27272a;
+  --shade-300: #3f3f46;
+  --shade-400: #52525b;
+  --shade-500: #71717a;
+  --shade-600: #a1a1aa;
+  --shade-700: #d4d4d8;
+  --shade-800: #e4e4e7;
+  --shade-900: #f4f4f5;
+  --shade-950: #fafafa;
+  --background: #ffffff;
+  --foreground: #18181b;
+  --overlay: rgba(0, 0, 0, 0.08);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: -1px -1px;
+}
+
+[data-theme="light"] body {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 6px rgba(34, 255, 102, 0.15); }
+  50% { box-shadow: 0 0 20px rgba(34, 255, 102, 0.4); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes progress-stripes {
+  0% { background-position: 0 0; }
+  100% { background-position: 20px 0; }
+}
+
+.animate-progress {
+  animation: progress-stripes 1s linear infinite;
+  background-image: linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.1) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.1) 75%,
+    transparent 75%,
+    transparent
+  );
+  background-size: 20px 20px;
+}
