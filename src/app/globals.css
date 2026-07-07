@@ -73,22 +73,30 @@ body::after {
 }
 
 @keyframes scan {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(400%); }
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(400%);
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .skeleton-shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--subtle) 0%,
-    var(--card-hover) 50%,
-    var(--subtle) 100%
-  );
+  background: linear-gradient(90deg,
+      var(--subtle) 0%,
+      var(--card-hover) 50%,
+      var(--subtle) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.6s ease-in-out infinite;
 }
@@ -98,6 +106,7 @@ body::after {
     opacity: 0;
     transform: translateY(32px) blur(4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) blur(0);
@@ -109,8 +118,15 @@ body::after {
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
 }
 
 .animate-blink {
@@ -122,6 +138,7 @@ body::after {
     opacity: 0;
     transform: translateY(16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -129,28 +146,36 @@ body::after {
 }
 
 @keyframes progress-stripes {
-  0% { background-position: 0 0; }
-  100% { background-position: 20px 0; }
+  0% {
+    background-position: 0 0;
+  }
+
+  100% {
+    background-position: 20px 0;
+  }
 }
 
 .animate-progress {
   animation: progress-stripes 1s linear infinite;
-  background-image: linear-gradient(
-    -45deg,
-    rgba(255, 255, 255, 0.06) 25%,
-    transparent 25%,
-    transparent 50%,
-    rgba(255, 255, 255, 0.06) 50%,
-    rgba(255, 255, 255, 0.06) 75%,
-    transparent 75%,
-    transparent
-  );
+  background-image: linear-gradient(-45deg,
+      rgba(255, 255, 255, 0.06) 25%,
+      transparent 25%,
+      transparent 50%,
+      rgba(255, 255, 255, 0.06) 50%,
+      rgba(255, 255, 255, 0.06) 75%,
+      transparent 75%,
+      transparent);
   background-size: 20px 20px;
 }
 
 @keyframes marquee-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-100%); }
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-100%);
+  }
 }
 
 .animate-marquee {
@@ -199,4 +224,34 @@ html.lenis body {
 
 .pin-shadow {
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.06);
+}
+
+@layer utilities {
+  .animate-scanner-line {
+    animation: scanLine 3s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+  }
+
+  .animate-scanner-beam {
+    animation: scanBeam 3s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+  }
+}
+
+@keyframes scanLine {
+  0% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(480px);
+  }
+}
+
+@keyframes scanBeam {
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(480px);
+  }
 }
