@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { FileText, FloppyDisk, Download, Translate, Sparkle } from 'phosphor-react'
 import { useAuth } from '@/lib/auth-context'
-import { useI18n } from '@/lib/i18n-context'
 import Skeleton from '@/components/ui/Skeleton'
 import CvEditor from './CvEditor'
 import CvPreview from './CvPreview'
@@ -12,7 +11,6 @@ import type { CvData, CvTemplateId } from '@/types'
 
 export default function CvBuilderPage() {
   const { user } = useAuth()
-  const { t } = useI18n()
   const [cv, setCv] = useState<CvData>(defaultCvData)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -64,24 +62,92 @@ export default function CvBuilderPage() {
   }, [cv, user, loading])
 
   const handleDownloadPdf = useCallback(async () => {
-    if (!previewRef.current) return
-    const html2canvas = (await import('html2canvas')).default
-    const { jsPDF } = await import('jspdf')
+    const name = cv.personalInfo.fullName || 'CV'
+    const win = window.open('', '_blank')
+    if (!win) return
 
-    const canvas = await html2canvas(previewRef.current, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-    })
+    const html = `<!DOCTYPE html>
+<html>
+<head><title>${name}</title>
+<style>
+  @page { margin: 0; size: A4; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    color: #111827;
+    background: #fff;
+    width: 210mm;
+    padding: 15mm 20mm;
+    line-height: 1.5;
+    font-size: 11px;
+  }
+  h1 { font-size: 22px; font-weight: 700; text-transform: uppercase; letter-spacing: -0.5px; margin-bottom: 2px; }
+  h2 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 12px 0 4px; padding-bottom: 2px; border-bottom: 1px solid #d1d5db; }
+  .contact { font-size: 10px; color: #6b7280; margin-bottom: 16px; }
+  .contact span { margin-right: 12px; }
+  .section { margin-bottom: 10px; }
+  .exp-header { display: flex; justify-content: space-between; font-weight: 600; font-size: 12px; }
+  .exp-company { font-size: 10px; color: #6b7280; }
+  ul { list-style: disc; padding-left: 16px; margin-top: 2px; }
+  li { font-size: 11px; color: #374151; margin-bottom: 1px; }
+  .skill-line { font-size: 11px; margin-bottom: 1px; }
+  .skill-line strong { font-weight: 600; }
+  .cert-line { font-size: 11px; margin-bottom: 1px; }
+  .cert-line strong { font-weight: 600; }
+  .lang-line { font-size: 11px; }
+  .summary { font-size: 11px; color: #374151; line-height: 1.6; margin-bottom: 10px; }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style></head>
+<body>
+  <h1>${escapeHtml(cv.personalInfo.fullName)}</h1>
+  <div class="contact">
+    ${cv.personalInfo.email ? `<span>${escapeHtml(cv.personalInfo.email)}</span>` : ''}
+    ${cv.personalInfo.phone ? `<span>${escapeHtml(cv.personalInfo.phone)}</span>` : ''}
+    ${cv.personalInfo.address ? `<span>${escapeHtml(cv.personalInfo.address)}</span>` : ''}
+    ${cv.personalInfo.linkedin ? `<span>${escapeHtml(cv.personalInfo.linkedin)}</span>` : ''}
+    ${cv.personalInfo.portfolio ? `<span>${escapeHtml(cv.personalInfo.portfolio)}</span>` : ''}
+  </div>
 
-    const imgData = canvas.toDataURL('image/png')
-    const pdf = new jsPDF('p', 'mm', 'a4')
-    const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+  ${cv.summary ? `<div class="section"><h2>${language === 'en' ? 'Professional Summary' : 'Ringkasan Profesional'}</h2><p class="summary">${escapeHtml(cv.summary)}</p></div>` : ''}
 
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
-    pdf.save(`${cv.personalInfo.fullName || 'CV'}.pdf`)
-  }, [cv.personalInfo.fullName])
+  ${cv.experience.length > 0 ? `<div class="section"><h2>${language === 'en' ? 'Experience' : 'Pengalaman'}</h2>${cv.experience.map(e => `
+    <div style="margin-bottom:6px">
+      <div class="exp-header"><span>${escapeHtml(e.position)}</span><span style="font-weight:400;font-size:10px;color:#6b7280">${e.startDate} – ${e.current ? (language === 'en' ? 'Present' : 'Sekarang') : e.endDate}</span></div>
+      <div class="exp-company">${escapeHtml(e.company)}</div>
+      ${e.bulletPoints.filter(b => b.trim()).length > 0 ? `<ul>${e.bulletPoints.filter(b => b.trim()).map(b => `<li>${escapeHtml(b)}</li>`).join('')}</ul>` : ''}
+    </div>
+  `).join('')}</div>` : ''}
+
+  ${cv.education.length > 0 ? `<div class="section"><h2>${language === 'en' ? 'Education' : 'Pendidikan'}</h2>${cv.education.map(e => `
+    <div style="margin-bottom:3px;display:flex;justify-content:space-between">
+      <span><strong>${escapeHtml(e.institution)}</strong> — ${escapeHtml(e.degree)}${e.field ? ' in ' + escapeHtml(e.field) : ''}${e.gpa ? ' (GPA: ' + e.gpa + ')' : ''}</span>
+      <span style="font-size:10px;color:#6b7280">${e.startDate} – ${e.endDate}</span>
+    </div>
+  `).join('')}</div>` : ''}
+
+  ${cv.skills.filter(s => s.items.filter(i => i).length > 0).length > 0 ? `<div class="section"><h2>${language === 'en' ? 'Skills' : 'Keahlian'}</h2>${cv.skills.filter(s => s.items.filter(i => i).length > 0).map(s => `
+    <div class="skill-line">${s.category ? `<strong>${escapeHtml(s.category)}:</strong> ` : ''}${s.items.filter(i => i).map(i => escapeHtml(i)).join(', ')}</div>
+  `).join('')}</div>` : ''}
+
+  ${cv.certifications.length > 0 ? `<div class="section"><h2>${language === 'en' ? 'Certifications' : 'Sertifikasi'}</h2>${cv.certifications.map(c => `
+    <div class="cert-line"><strong>${escapeHtml(c.name)}</strong>${c.issuer ? ' — ' + escapeHtml(c.issuer) : ''}${c.date ? ' (' + c.date + ')' : ''}</div>
+  `).join('')}</div>` : ''}
+
+  ${cv.languages.length > 0 ? `<div class="section"><h2>${language === 'en' ? 'Languages' : 'Bahasa'}</h2><div class="lang-line">${cv.languages.map(l => `${escapeHtml(l.language)} (${escapeHtml(l.proficiency)})`).join(', ')}</div></div>` : ''}
+</body></html>`
+
+    win.document.write(html)
+    win.document.close()
+    win.focus()
+    setTimeout(() => { win.print() }, 500)
+  }, [cv, language])
+
+  function escapeHtml(text: string) {
+    if (!text) return ''
+    return text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+  }
 
   const getAIContext = useCallback((section: string) => {
     switch (section) {
