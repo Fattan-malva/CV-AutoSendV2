@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@import "@fontsource/outfit/300.css";
+@import "@fontsource/outfit/400.css";
+@import "@fontsource/outfit/500.css";
+@import "@fontsource/outfit/600.css";
+@import "@fontsource/outfit/700.css";
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -10,38 +16,39 @@
   --color-surface: var(--surface);
   --color-card: var(--card);
   --color-card-hover: var(--card-hover);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-outfit);
   --font-serif: var(--font-plus-jakarta-sans);
 }
 
 :root {
-  --background: #1A1410;
-  --foreground: #EDE4D4;
-  --accent: #7A8A7A;
-  --subtle: #2A2420;
-  --muted: #8A8278;
-  --border: #3A3430;
-  --surface: #221C18;
-  --card: #2A2420;
-  --card-hover: #322C28;
+  --background: #030303;
+  --foreground: #FFFFFF;
+  --accent: #6366F1;
+  --subtle: #111111;
+  --muted: rgba(255, 255, 255, 0.5);
+  --border: rgba(255, 255, 255, 0.1);
+  --surface: rgba(255, 255, 255, 0.03);
+  --card: rgba(255, 255, 255, 0.03);
+  --card-hover: rgba(255, 255, 255, 0.06);
 }
 
 [data-theme="light"] {
-  --background: #FDFBF7;
-  --foreground: #3C2A21;
-  --accent: #8A9A8A;
-  --subtle: #F0EBE0;
-  --muted: #B0A898;
-  --border: #E0DBD0;
-  --surface: #F8F5F0;
+  --background: #F6F6F4;
+  --foreground: #0A0A0A;
+  --accent: #4F46E5;
+  --subtle: #EEEEEA;
+  --muted: rgba(0, 0, 0, 0.5);
+  --border: rgba(0, 0, 0, 0.08);
+  --surface: rgba(255, 255, 255, 0.7);
   --card: #FFFFFF;
-  --card-hover: #F5F2EC;
+  --card-hover: #F0F0EC;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+  overflow-x: hidden;
   transition: background-color 0.7s cubic-bezier(0.32, 0.72, 0, 1), color 0.7s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
@@ -63,6 +70,11 @@ body::after {
 
 ::-webkit-scrollbar {
   display: none;
+}
+
+@keyframes scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(400%); }
 }
 
 @keyframes reveal-up {
@@ -118,4 +130,57 @@ body::after {
     transparent
   );
   background-size: 20px 20px;
+}
+
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee-scroll 32s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+.inline-pill-image {
+  display: inline-block;
+  width: 5.5rem;
+  height: 1.9rem;
+  border-radius: 9999px;
+  vertical-align: middle;
+  margin: 0 0.5rem;
+  background-size: cover;
+  background-position: center;
+  filter: grayscale(0.2) contrast(1.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.ambient-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.10;
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-theme="light"] .ambient-glow {
+  opacity: 0.14;
+}
+
+.gsap-reveal {
+  opacity: 0;
+  transform: translateY(40px);
+}
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.pin-shadow {
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.06);
 }

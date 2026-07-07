@@ -78,22 +78,27 @@ export default function FreeDemo({ onOpenAuth }: FreeDemoProps) {
   }
 
   return (
-    <section id="demo" className="py-28 px-4">
-      <div ref={ref} className={`max-w-2xl mx-auto transition-all duration-900 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+    <section id="demo" className="relative py-32 md:py-48 px-4 sm:px-8 overflow-hidden">
+      {/* Ethereal Glass background mesh */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-[20%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-accent/6 blur-[160px] mix-blend-screen" />
+        <div className="absolute bottom-[10%] right-[-10%] w-[35vw] h-[35vw] rounded-full bg-accent/5 blur-[140px] mix-blend-screen" />
+      </div>
+      <div ref={ref} className={`max-w-2xl mx-auto relative z-10 transition-all duration-900 ease-[cubic-bezier(0.32,0.72,0,1)] ${
         isVisible ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-16 blur-md'
       }`}>
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-subtle/50 mb-6">
-            <span className="text-[10px] uppercase tracking-[0.2em] font-medium text-muted">Demo</span>
-          </div>
-          <h2 className="text-4xl sm:text-5xl font-serif text-foreground leading-[1.05] tracking-tight">
-            Coba Gratis
+        <div className="mb-10">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-serif text-foreground leading-[1.02] tracking-tight text-start">
+            {t.demo.title}
           </h2>
+          <p className="mt-5 text-base text-muted leading-relaxed max-w-lg">
+            {t.demo.upload}
+          </p>
         </div>
 
         {used && !result ? (
-          <div className="p-1.5 rounded-[2rem] bg-border/30">
-            <div className="rounded-[calc(2rem-0.375rem)] bg-card p-10 text-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
+          <div className="p-[1px] rounded-[2rem] bg-gradient-to-b from-border to-transparent">
+            <div className="rounded-[calc(2rem-1px)] bg-card p-10 text-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
               <Warning size={28} className="text-accent mx-auto mb-4" />
               <p className="text-sm text-foreground">{t.demo.used}</p>
               <p className="mt-2 text-xs text-muted break-words whitespace-normal max-w-full">
@@ -101,10 +106,10 @@ export default function FreeDemo({ onOpenAuth }: FreeDemoProps) {
               </p>
               <button
                 onClick={onOpenAuth}
-                className="group inline-flex items-center justify-center gap-2 mt-6 px-5 py-2.5 rounded-full bg-accent text-background text-sm font-medium hover:opacity-90 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
+                className="group inline-flex items-center justify-center gap-2 mt-6 px-5 py-2.5 rounded-full bg-foreground text-background text-sm font-medium hover:opacity-90 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
               >
                 <span>{t.demo.sendEmail}</span>
-                <span className="w-6 h-6 rounded-full bg-background/10 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-300">
+                <span className="w-6 h-6 rounded-full bg-background/10 flex items-center justify-center group-hover:translate-x-1 group-hover:-translate-y-[1px] group-hover:scale-105 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]">
                   <ArrowRight size={12} weight="bold" className="text-background" />
                 </span>
               </button>
@@ -113,8 +118,8 @@ export default function FreeDemo({ onOpenAuth }: FreeDemoProps) {
         ) : (
           <>
             {!result && (
-              <div className="p-1.5 rounded-[2rem] bg-border/30">
-                <div className="rounded-[calc(2rem-0.375rem)] bg-card p-10 text-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
+              <div className="p-[1px] rounded-[2rem] bg-gradient-to-b from-border to-transparent">
+                <div className="rounded-[calc(2rem-1px)] bg-card p-10 text-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
                   <label className="flex flex-col items-center gap-3 cursor-pointer">
                     <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
                       <Upload size={22} className="text-accent" />
@@ -136,7 +141,7 @@ export default function FreeDemo({ onOpenAuth }: FreeDemoProps) {
                     <button
                       onClick={handleAnalyze}
                       disabled={!file || loading}
-                      className="group inline-flex items-center justify-center gap-2 bg-accent text-background rounded-full px-6 py-3 font-medium text-sm hover:opacity-90 disabled:opacity-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] min-w-[180px]"
+                      className="group inline-flex items-center justify-center gap-2 bg-foreground text-background rounded-full px-6 py-3 font-medium text-sm hover:opacity-90 disabled:opacity-40 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] min-w-[180px]"
                     >
                       {loading ? (
                         <>
@@ -145,22 +150,22 @@ export default function FreeDemo({ onOpenAuth }: FreeDemoProps) {
                         </>
                       ) : t.demo.analyze}
                       {!loading && (
-                        <span className="w-6 h-6 rounded-full bg-background/10 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-300">
+                        <span className="w-6 h-6 rounded-full bg-background/10 flex items-center justify-center group-hover:translate-x-1 group-hover:-translate-y-[1px] group-hover:scale-105 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]">
                           <ArrowRight size={12} weight="bold" className="text-background" />
                         </span>
                       )}
                     </button>
                   </div>
 
-                  {error && <p className="mt-4 text-xs text-red-400">{error}</p>}
+                  {error && <p className="mt-4 text-xs text-red-400/80">{error}</p>}
                 </div>
               </div>
             )}
 
             {result && (
               <div className="mt-4">
-                <div className="p-1.5 rounded-[2rem] bg-border/30">
-                  <div className="rounded-[calc(2rem-0.375rem)] bg-card p-7 space-y-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
+                <div className="p-[1px] rounded-[2rem] bg-gradient-to-b from-border to-transparent">
+                  <div className="rounded-[calc(2rem-1px)] bg-card p-7 space-y-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
                     {[
                       { label: 'Subjek', value: result.subjek },
                       { label: 'Email', value: result.email },
@@ -172,16 +177,16 @@ export default function FreeDemo({ onOpenAuth }: FreeDemoProps) {
                     ].map((f) => (
                       <div key={f.label}>
                         <label className="text-[10px] uppercase tracking-wider text-muted">{f.label}</label>
-                        <p className="text-xs text-foreground mt-0.5">{f.value}</p>
+                        <p className="text-xs text-foreground/80 mt-0.5">{f.value}</p>
                       </div>
                     ))}
                     <div className="pt-4 border-t border-border">
                       <button
                         onClick={onOpenAuth}
-                        className="group w-full flex items-center justify-center gap-2 bg-accent text-background rounded-full px-5 py-3 font-medium text-sm hover:opacity-90 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
+                        className="group w-full flex items-center justify-center gap-2 bg-foreground text-background rounded-full px-5 py-3 font-medium text-sm hover:opacity-90 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
                       >
                         <span>{t.demo.sendEmail}</span>
-                        <span className="w-6 h-6 rounded-full bg-background/10 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-300">
+                        <span className="w-6 h-6 rounded-full bg-background/10 flex items-center justify-center group-hover:translate-x-1 group-hover:-translate-y-[1px] group-hover:scale-105 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]">
                           <ArrowRight size={12} weight="bold" className="text-background" />
                         </span>
                       </button>

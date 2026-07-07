@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Plus_Jakarta_Sans } from "next/font/google";
+import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/lib/providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -20,6 +21,10 @@ export const metadata: Metadata = {
     template: '%s | CV-AutoSend',
   },
   description: 'Upload brosur lowongan kerja, AI analisis otomatis, kirim CV + email lamaran dalam 1 klik. Gratis!',
+  icons: {
+    icon: '/favicon.png',
+    apple: '/favicon.png',
+  },
   openGraph: {
     title: 'CV-AutoSend',
     description: 'Upload brosur, AI analisis, kirim CV + email lamaran dalam 1 klik.',
@@ -41,7 +46,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={`${geistSans.variable} ${plusJakartaSans.variable} antialiased`} suppressHydrationWarning>
+    <html lang="id" className={`${outfit.variable} ${plusJakartaSans.variable} antialiased`} suppressHydrationWarning>
       <head>
         <meta name="google-site-verification" content="rI7_KVJLSLI14pRvrIbFXuVJJ_Kbp5SCQnnZwDniQ2Q" />
       </head>
