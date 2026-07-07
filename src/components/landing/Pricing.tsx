@@ -23,11 +23,19 @@ const tiers = [
     features: ['3 analisis', '3 pengiriman'],
   },
   {
+    key: 'basic',
+    nameKey: 'pricingBasic',
+    descKey: 'pricingBasicDesc',
+    priceKey: 'pricingBasicPrice',
+    featured: false,
+    features: ['20 analisis', '20 pengiriman'],
+  },
+  {
     key: 'starter',
     nameKey: 'pricingStarter',
     descKey: 'pricingStarterDesc',
     priceKey: 'pricingStarterPrice',
-    featured: true,
+    featured: false,
     features: ['80 analisis', '80 pengiriman', 'Prioritas'],
   },
   {
@@ -35,7 +43,7 @@ const tiers = [
     nameKey: 'pricingPro',
     descKey: 'pricingProDesc',
     priceKey: 'pricingProPrice',
-    featured: false,
+    featured: true,
     features: ['Unlimited', 'Semua fitur'],
   },
 ] as const
@@ -90,7 +98,7 @@ export default function Pricing({ onOpenAuth }: PricingProps) {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 items-stretch">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 items-stretch">
           {tiers.map((tier) => (
             <div key={tier.key} className="price-card group">
               <div

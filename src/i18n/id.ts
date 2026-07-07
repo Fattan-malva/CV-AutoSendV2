@@ -53,7 +53,7 @@ const id = {
   },
   demo: {
     label: 'Coba Gratis',
-    title: 'Coba Gratis (Tanpa Login)',
+    title: 'Coba Gratis',
     upload: 'Upload brosur untuk analisis 1x gratis.',
     analyze: 'Analisis',
     loading: 'Menganalisis...',

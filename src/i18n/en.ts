@@ -53,7 +53,7 @@ const en = {
   },
   demo: {
     label: 'Try Free',
-    title: 'Try Free (No Login)',
+    title: 'Try Free',
     upload: 'Upload a brochure for 1 free analysis.',
     analyze: 'Analyze',
     loading: 'Analyzing...',

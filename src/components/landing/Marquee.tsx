@@ -15,18 +15,24 @@ export default function Marquee() {
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[30vw] rounded-full bg-accent/4 blur-[120px] mix-blend-screen" />
       </div>
-      <div className="relative flex select-none">
-        <div className="animate-marquee flex items-center gap-16 whitespace-nowrap pr-16">
-          {row.map((label, i) => {
-            const Icon = iconMap[i % iconMap.length]
-            return (
-              <div key={i} className="flex items-center gap-3">
-                <Icon size={22} className="text-accent/60" weight="duotone" />
-                <span className="text-lg font-serif text-foreground/80">{label}</span>
-              </div>
-            )
-          })}
-        </div>
+      <div className="relative flex overflow-hidden select-none gap-16">
+        {[0, 1].map((group) => (
+          <div
+            key={group}
+            aria-hidden={group === 1}
+            className="animate-marquee flex shrink-0 items-center gap-16 whitespace-nowrap"
+          >
+            {row.map((label, i) => {
+              const Icon = iconMap[i % iconMap.length]
+              return (
+                <div key={i} className="flex items-center gap-3">
+                  <Icon size={22} className="text-accent/60" weight="duotone" />
+                  <span className="text-lg font-serif text-foreground/80">{label}</span>
+                </div>
+              )
+            })}
+          </div>
+        ))}
       </div>
     </section>
   )

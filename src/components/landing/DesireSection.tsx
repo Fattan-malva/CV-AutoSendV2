@@ -14,24 +14,22 @@ export default function DesireSection() {
 
   useGSAP(
     () => {
-      gsap.set('.desire-card', { y: 40, opacity: 0 })
+      // Cards: gentle continuous float, never disappear (no hard cut)
+      gsap.set('.desire-card', { y: 0, opacity: 1 })
+      gsap.to('.desire-card', {
+        y: -10,
+        duration: 2.4,
+        ease: 'sine.inOut',
+        stagger: { each: 0.4, yoyo: true, repeat: -1 },
+      })
 
-      const cardLoop = gsap.timeline({ repeat: -1, defaults: { ease: 'power3.inOut' } })
-      cardLoop
-        .to('.desire-card', { y: 0, opacity: 1, duration: 0.7, stagger: 0.25 })
-        .to({}, { duration: 2 })
-        .to('.desire-card', { y: -40, opacity: 0, duration: 0.7, stagger: 0.25 })
-        .to({}, { duration: 0.5 })
-
-      gsap.set('.scrub-word', { opacity: 0.15 })
-
+      // Words: seamless breathing shimmer, per-word phase offset, no dead pause
+      gsap.set('.scrub-word', { opacity: 0.22 })
       gsap.to('.scrub-word', {
         opacity: 1,
-        duration: 0.35,
-        stagger: 0.05,
-        repeat: -1,
-        yoyo: true,
-        repeatDelay: 2.5,
+        duration: 1.6,
+        ease: 'sine.inOut',
+        stagger: { each: 0.12, yoyo: true, repeat: -1 },
       })
     },
     { scope: root }

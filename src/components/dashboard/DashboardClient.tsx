@@ -151,11 +151,53 @@ export default function DashboardClient() {
 
   if (!config) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="p-1.5 rounded-[2rem] bg-border/30">
-          <div className="rounded-[calc(2rem-0.375rem)] bg-card p-8 text-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
-            <Skeleton className="w-8 h-8 rounded-full mx-auto" />
+      <div className="space-y-8">
+        {/* Usage + Upload card skeletons */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="p-1.5 rounded-[2rem] bg-border/30">
+            <div className="rounded-[calc(2rem-0.375rem)] bg-card p-7 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] h-full">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-9 h-9 rounded-xl" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-3 w-28" />
+                    <Skeleton className="h-2 w-20" />
+                  </div>
+                </div>
+                <Skeleton className="h-3 w-12 rounded-full" />
+              </div>
+              <div className="flex justify-center gap-12">
+                <Skeleton className="w-20 h-20 rounded-full" />
+                <Skeleton className="w-20 h-20 rounded-full" />
+              </div>
+            </div>
           </div>
+
+          <div className="p-1.5 rounded-[2rem] bg-border/30">
+            <div className="rounded-[calc(2rem-0.375rem)] bg-card p-8 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] h-full flex items-center justify-center">
+              <div className="flex flex-col items-center gap-4 text-center">
+                <Skeleton className="w-14 h-14 rounded-full" />
+                <Skeleton className="h-3 w-40" />
+                <Skeleton className="h-2 w-32" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* File list card skeletons */}
+        <div className="space-y-4">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="p-1.5 rounded-[2rem] bg-border/30">
+              <div className="rounded-[calc(2rem-0.375rem)] bg-card overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
+                <div className="flex items-center gap-3 px-5 py-4">
+                  <Skeleton className="w-4 h-4 rounded" />
+                  <Skeleton className="h-3 w-48" />
+                  <Skeleton className="h-5 w-16 rounded-full ml-auto" />
+                  <Skeleton className="w-4 h-4 rounded" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     )

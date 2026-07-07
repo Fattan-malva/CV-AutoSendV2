@@ -77,6 +77,22 @@ body::after {
   100% { transform: translateY(400%); }
 }
 
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--subtle) 0%,
+    var(--card-hover) 50%,
+    var(--subtle) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
 @keyframes reveal-up {
   from {
     opacity: 0;
@@ -134,11 +150,11 @@ body::after {
 
 @keyframes marquee-scroll {
   from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  to { transform: translateX(-100%); }
 }
 
 .animate-marquee {
-  animation: marquee-scroll 32s linear infinite;
+  animation: marquee-scroll 28s linear infinite;
 }
 
 .animate-marquee:hover {

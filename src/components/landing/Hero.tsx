@@ -23,7 +23,7 @@ export default function Hero({ onOpenAuth }: HeroProps) {
   useGSAP(
     () => {
       const tl = gsap.timeline({ defaults: { ease: 'expo.out' } }) // Upgraded to expo for cinematic mass
-      
+
       tl.fromTo(
         '.hero-eyebrow',
         { opacity: 0, y: 20 },
@@ -81,10 +81,10 @@ export default function Hero({ onOpenAuth }: HeroProps) {
 
       {/* Editorial Split Layout */}
       <div className="max-w-[1440px] mx-auto w-full relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-12 items-center">
-        
+
         {/* Left Typography Block (col-span-7) */}
         <div className="lg:col-span-7 flex flex-col items-start w-full">
-          
+
           {/* Haptic Eyebrow */}
           <div className="hero-eyebrow flex items-center gap-2 px-3 py-1.5 mb-8 rounded-full bg-surface border border-border backdrop-blur-md">
             <Sparkle size={12} weight="fill" className="text-accent" />
@@ -102,12 +102,11 @@ export default function Hero({ onOpenAuth }: HeroProps) {
             <span className="block overflow-hidden pb-4">
               <span className="hero-line-inner flex flex-wrap items-center gap-x-4 gap-y-2 origin-bottom">
                 {/* Embedded Inline Pill */}
-                <div className="hero-inline-pill relative w-[120px] sm:w-[160px] h-[60px] sm:h-[80px] rounded-full p-1 bg-surface border border-border backdrop-blur-2xl shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] -mt-2">
-                  <div 
-                    className="w-full h-full rounded-[calc(999px-4px)] bg-cover bg-center opacity-80 mix-blend-luminosity grayscale hover:grayscale-0 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]"
-                    style={{ backgroundImage: 'url(https://picsum.photos/seed/resume/400/200)' }}
-                  />
-                </div>
+                <img
+                  src="/icons.png"
+                  alt="CV AutoSend"
+                  className="hero-inline-pill w-12 h-12 sm:w-20 sm:h-20 object-contain -mt-2 transition-transform duration-700 hover:scale-110"
+                />
                 {secondHalf}
               </span>
             </span>
@@ -142,13 +141,13 @@ export default function Hero({ onOpenAuth }: HeroProps) {
         {/* Right Abstract Visualizer (col-span-5) */}
         <div className="lg:col-span-5 w-full hidden md:block perspective-[2000px]">
           <div className="hero-visualizer rotate-y-[-12deg] rotate-x-[4deg] hover:rotate-y-0 hover:rotate-x-0 transition-transform duration-1000 ease-[cubic-bezier(0.32,0.72,0,1)]">
-            
+
             {/* Outer Shell (Double-Bezel Architecture) */}
             <div className="p-2 rounded-[2.5rem] bg-surface ring-1 ring-border shadow-2xl backdrop-blur-3xl">
-              
+
               {/* Inner Core */}
               <div className="relative w-full h-[480px] rounded-[calc(2.5rem-0.5rem)] bg-gradient-to-b from-[#111] to-[#0A0A0A] shadow-[inset_0_1px_1px_rgba(255,255,255,0.08)] overflow-hidden flex flex-col p-6">
-                
+
                 {/* Mock UI Header */}
                 <div className="flex items-center gap-2 mb-8 border-b border-white/5 pb-4">
                   <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
