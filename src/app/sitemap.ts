@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = 'https://cv-auto-send.vercel.app'
+  const base = 'https://ceefy.mallvaa.xyz'
   return [
     {
       url: base,
@@ -13,13 +13,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       url: `${base}/login`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
-      priority: 0.5,
+      priority: 0.6,
     },
     {
       url: `${base}/signup`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
-      priority: 0.5,
+      priority: 0.6,
+    },
+    {
+      url: `${base}/dashboard`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.4,
     },
   ]
 }

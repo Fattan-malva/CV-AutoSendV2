@@ -14,7 +14,7 @@ const ThemeContext = createContext<ThemeContextType>({
   toggleTheme: () => {},
 })
 
-const STORAGE_KEY = 'cv-autosend-theme'
+const STORAGE_KEY = 'ceefy-theme'
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>('dark')

@@ -15,29 +15,39 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://cv-auto-send.vercel.app'),
+  metadataBase: new URL('https://ceefy.mallvaa.xyz'),
   title: {
-    default: 'CV-AutoSend | Kirim CV Otomatis dengan AI',
-    template: '%s | CV-AutoSend',
+    default: 'Ceefy - Kirim CV Otomatis dengan AI ke Setiap Lowongan Kerja',
+    template: '%s | ceefy',
   },
-  description: 'Upload brosur lowongan kerja, AI analisis otomatis, kirim CV + email lamaran dalam 1 klik. Gratis!',
+  description: 'Kirim CV otomatis dengan AI ke setiap lowongan kerja. Upload brosur, AI analisis otomatis, kirim email lamaran dalam 1 klik. Solusi job seeker cerdas untuk aplikasi kerja cepat dan personal.',
+  keywords: ['CV', 'kirim CV otomatis', 'lamaran kerja', 'job application', 'AI recruitment', 'job seeker', 'cari kerja', 'lowongan', 'aplikasi lowongan kerja', 'otomatis kirim email', 'ceefy'],
   icons: {
     icon: '/favicon.png',
     apple: '/favicon.png',
   },
   openGraph: {
-    title: 'CV-AutoSend',
-    description: 'Upload brosur, AI analisis, kirim CV + email lamaran dalam 1 klik.',
-    siteName: 'CV-AutoSend',
+    title: 'ceefy - Kirim CV Otomatis dengan AI',
+    description: 'Upload brosur, AI analisis otomatis, kirim CV + email lamaran dalam 1 klik. Dibuat untuk job seeker Indonesia.',
+    siteName: 'ceefy',
     locale: 'id_ID',
     type: 'website',
+    url: 'https://ceefy.mallvaa.xyz',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'CV-AutoSend',
-    description: 'Upload brosur, AI analisis, kirim CV + email lamaran dalam 1 klik.',
+    title: 'ceefy - Kirim CV Otomatis dengan AI',
+    description: 'Upload brosur, AI analisis, kirim CV + email lamaran dalam 1 klik. Solusi cerdas job seeker.',
   },
   robots: 'index, follow',
+  alternates: {
+    canonical: 'https://ceefy.mallvaa.xyz',
+    languages: {
+      'id': 'https://ceefy.mallvaa.xyz',
+      'en': 'https://ceefy.mallvaa.xyz/en',
+      'x-default': 'https://ceefy.mallvaa.xyz',
+    },
+  },
 };
 
 export default function RootLayout({
@@ -48,7 +58,29 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${outfit.variable} ${plusJakartaSans.variable} antialiased`} suppressHydrationWarning>
       <head>
-        <meta name="google-site-verification" content="rI7_KVJLSLI14pRvrIbFXuVJJ_Kbp5SCQnnZwDniQ2Q" />
+        <meta name="google-site-verification" content="xgzeigl6YoKgRyfWu9ZPM4xn0OY4ApfTzcfb7FBKIwY" />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{
+          __html: JSON.stringify([
+            {
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              "name": "ceefy",
+              "applicationCategory": "JobApplication",
+              "operatingSystem": "Web",
+              "url": "https://ceefy.mallvaa.xyz/",
+              "description": "Kirim CV otomatis dengan AI ke setiap lowongan kerja. Upload brosur, AI analisis, kirim email lamaran dalam 1 klik.",
+              "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+            },
+            {
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "ceefy",
+              "url": "https://ceefy.mallvaa.xyz/",
+              "description": "Aplikasi AI untuk membantu job seeker mengirim CV otomatis",
+              "inLanguage": ["id", "en"]
+            }
+          ])
+        }} />
       </head>
       <body className="min-h-screen">
         <Providers>{children}</Providers>

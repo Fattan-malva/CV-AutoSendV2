@@ -1,4 +1,4 @@
-# CV-AutoSend v2 — Setup Guide
+# ceefy — Setup Guide
 
 ## 1. Firebase Console
 
@@ -67,7 +67,7 @@ Buka https://app.lemonsqueezy.com
 Buat **1 produk** dengan **3 varian** (Basic, Starter, Pro):
 
 1. **Products** → **Create a product**
-   - Nama: `CV-AutoSend`
+   - Nama: `ceefy`
    - Isi detail lainnya sesuai keinginan
    - Klik **Save**
 

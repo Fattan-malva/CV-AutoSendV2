@@ -38,7 +38,7 @@ export default function Sidebar({ onUpgrade, onLogout, onClose }: { onUpgrade: (
     <aside className="w-56 shrink-0 bg-surface border-r border-border flex flex-col h-full">
       <div className="h-16 flex items-center justify-between px-5 border-b border-border">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-serif font-semibold text-foreground tracking-tight">cv-autosend</span>
+          <span className="text-sm font-serif font-semibold text-foreground tracking-tight">ceefy</span>
         </div>
         <button onClick={onClose} className="lg:hidden text-muted hover:text-foreground transition-colors">
           <X size={18} />

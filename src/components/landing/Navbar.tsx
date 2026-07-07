@@ -34,12 +34,12 @@ export default function Navbar({ onOpenAuth, onOpenLogout }: NavbarProps) {
           <Link href="/" className="flex items-center gap-3 mr-6">
             <img
               src="/icons.png"
-              alt="CV AutoSend"
+              alt="ceefy"
               className="w-8 h-8 object-contain"
             />
 
             <span className="text-sm font-serif font-semibold text-white/95 tracking-tight">
-              cv-autosend
+              ceefy
             </span>
           </Link>
 

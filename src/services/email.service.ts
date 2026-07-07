@@ -102,7 +102,7 @@ export async function sendTestEmail(config: {
   await transporter.sendMail({
     from: `"${config.senderName}" <${config.smtpUser}>`,
     to: config.to,
-    subject: 'CV-AutoSend - Test Email',
+    subject: 'ceefy - Test Email',
     text: 'Email settings are working correctly!',
   })
 }

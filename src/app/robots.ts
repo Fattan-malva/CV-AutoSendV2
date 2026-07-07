@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: '*', disallow: '/dashboard/' },
       { userAgent: '*', disallow: '/api/' },
     ],
-    sitemap: 'https://cv-auto-send.vercel.app/sitemap.xml',
+    sitemap: 'https://ceefy.mallvaa.xyz/sitemap.xml',
   }
 }

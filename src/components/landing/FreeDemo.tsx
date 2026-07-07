@@ -23,12 +23,12 @@ export default function FreeDemo({ onOpenAuth }: FreeDemoProps) {
   const [used, setUsed] = useState(false)
 
   useEffect(() => {
-    const saved = localStorage.getItem('cv-autosend-demo-used')
+    const saved = localStorage.getItem('ceefy-demo-used')
     if (saved === 'true') setUsed(true)
   }, [])
 
   useEffect(() => {
-    if (used) localStorage.setItem('cv-autosend-demo-used', 'true')
+    if (used) localStorage.setItem('ceefy-demo-used', 'true')
   }, [used])
 
   const handleFile = (f: File) => {

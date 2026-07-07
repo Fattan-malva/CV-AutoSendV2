@@ -105,7 +105,7 @@ export default function Hero({ onOpenAuth }: HeroProps) {
                 <span className="hero-inline-pill inline-flex items-center justify-center flex-shrink-0">
                   <img
                     src="/icons.png"
-                    alt="CV AutoSend"
+                    alt="ceefy"
                     className="w-14 h-14 sm:w-24 sm:h-24 object-contain transition-transform duration-700 hover:scale-110"
                   />
                 </span>

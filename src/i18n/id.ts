@@ -49,7 +49,7 @@ const id = {
     pricingDesc: 'Mulai gratis tanpa kartu. Upgrade kapan saja.',
     pricingPopular: 'Paling Populer',
     pricingCta: 'Langganan Sekarang',
-    footer: 'CV-AutoSend. Dibuat dengan AI.',
+    footer: 'ceefy. Dibuat dengan AI.',
   },
   demo: {
     label: 'Coba Gratis',
@@ -65,7 +65,7 @@ const id = {
     usedDesc: 'Kamu sudah menggunakan 1x analisis gratis. Login atau daftar untuk analisis lebih lanjut.',
   },
   login: {
-    title: 'Masuk ke CV-AutoSend',
+    title: 'Masuk ke ceefy',
     google: 'Lanjutkan dengan Google',
     noAccount: 'Belum punya akun?',
     signup: 'Daftar',

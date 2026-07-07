@@ -49,7 +49,7 @@ const en = {
     pricingDesc: 'Start free, no card required. Upgrade anytime.',
     pricingPopular: 'Most Popular',
     pricingCta: 'Subscribe Now',
-    footer: 'CV-AutoSend. Made with Malva-Assistant.',
+    footer: 'ceefy. Made with Malva-Assistant.',
   },
   demo: {
     label: 'Try Free',
@@ -65,7 +65,7 @@ const en = {
     usedDesc: 'You have used your 1 free analysis. Login or sign up for more.',
   },
   login: {
-    title: 'Login to CV-AutoSend',
+    title: 'Login to ceefy',
     google: 'Continue with Google',
     noAccount: "Don't have an account?",
     signup: 'Sign Up',

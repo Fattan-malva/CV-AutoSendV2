@@ -1,6 +1,6 @@
-# CV-AutoSend
+# ceefy
 
-Kirim CV otomatis ke setiap lowongan kerja — upload brosur, AI analisis, kirim CV + email dalam 1 klik.
+Kirim CV otomatis dengan AI ke setiap lowongan kerja — upload brosur, AI analisis, kirim CV + email dalam 1 klik.
 
 ## Fitur
 

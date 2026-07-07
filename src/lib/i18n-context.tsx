@@ -21,7 +21,7 @@ const I18nContext = createContext<I18nContextType>({
 })
 
 const translations: Record<Locale, Translations> = { id, en }
-const STORAGE_KEY = 'cv-autosend-locale'
+const STORAGE_KEY = 'ceefy-locale'
 
 export function I18nProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>('id')
