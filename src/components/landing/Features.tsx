@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState, useEffect, useMemo } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
@@ -11,9 +11,35 @@ gsap.registerPlugin(ScrollTrigger, useGSAP)
 
 const iconMap = [Upload, Brain, PaperPlaneTilt, Folder, Lock, Lightning]
 
+function useTypewriter(phrases: string[], typeSpeed = 45, deleteSpeed = 22, pause = 1500) {
+  const [charIndex, setCharIndex] = useState(0)
+  const [deleting, setDeleting] = useState(false)
+  const [phraseIndex, setPhraseIndex] = useState(0)
+
+  useEffect(() => {
+    const current = phrases[phraseIndex]
+    let timeout: ReturnType<typeof setTimeout>
+    if (!deleting && charIndex < current.length) {
+      timeout = setTimeout(() => setCharIndex((c) => c + 1), typeSpeed)
+    } else if (!deleting && charIndex === current.length) {
+      timeout = setTimeout(() => setDeleting(true), pause)
+    } else if (deleting && charIndex > 0) {
+      timeout = setTimeout(() => setCharIndex((c) => c - 1), deleteSpeed)
+    } else if (deleting && charIndex === 0) {
+      setDeleting(false)
+      setPhraseIndex((p) => (p + 1) % phrases.length)
+    }
+    return () => clearTimeout(timeout)
+  }, [charIndex, deleting, phraseIndex, phrases, typeSpeed, deleteSpeed, pause])
+
+  return phrases[phraseIndex].substring(0, charIndex)
+}
+
 export default function Features() {
   const { t } = useI18n()
   const root = useRef<HTMLElement>(null)
+  const steps = useMemo(() => t.landing.features.map((f) => f.title), [t])
+  const typed = useTypewriter(steps)
 
   useGSAP(
     () => {
@@ -83,15 +109,23 @@ export default function Features() {
                     <Icon size={24} className="text-accent" weight="duotone" />
                   </div>
                   <h3 className="text-xl font-serif text-foreground mb-3">{f.title}</h3>
-                  <p className="text-sm text-muted leading-relaxed flex-1">{f.desc}</p>
+                  <p className="text-sm text-muted leading-relaxed">{f.desc}</p>
 
                   {i === 0 && (
-                    <div className="mt-8 -mb-2 -mr-2 overflow-hidden rounded-2xl ring-1 ring-white/5">
-                      <img
-                        src="https://picsum.photos/seed/workspace/800/500"
-                        alt=""
-                        className="w-full h-56 object-cover opacity-80 mix-blend-luminosity grayscale contrast-125 group-hover:scale-105 transition-transform duration-700 ease-out"
-                      />
+                    <div className="mt-8 -mb-2 -mr-2 flex-1 min-h-[200px] rounded-2xl ring-1 ring-white/5 overflow-hidden relative bg-gradient-to-br from-accent/10 via-transparent to-transparent flex flex-col">
+                      <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5">
+                        <div className="w-2 h-2 rounded-full bg-white/20" />
+                        <div className="w-2 h-2 rounded-full bg-white/20" />
+                        <div className="w-2 h-2 rounded-full bg-white/20" />
+                      </div>
+                      <div className="flex-1 flex items-center px-5">
+                        <span className="text-accent mr-2 font-mono text-sm">$</span>
+                        <span className="font-mono text-sm text-foreground/90">
+                          {typed}
+                          <span className="inline-block w-[2px] h-4 bg-accent ml-0.5 animate-blink align-middle" />
+                        </span>
+                      </div>
+                      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-transparent via-accent/10 to-accent/25 blur-xl animate-[scan_3s_ease-in-out_infinite_alternate] pointer-events-none" />
                     </div>
                   )}
                 </div>

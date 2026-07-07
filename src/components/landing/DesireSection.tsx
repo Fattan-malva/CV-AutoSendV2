@@ -14,14 +14,28 @@ export default function DesireSection() {
 
   useGSAP(
     () => {
-      // Cards: gentle continuous float, never disappear (no hard cut)
-      gsap.set('.desire-card', { y: 0, opacity: 1 })
-      gsap.to('.desire-card', {
-        y: -10,
-        duration: 2.4,
-        ease: 'sine.inOut',
-        stagger: { each: 0.4, yoyo: true, repeat: -1 },
+      const cards = gsap.utils.toArray<HTMLElement>('.desire-card')
+
+      // Scroll-looping spotlight: cards take turns being active as you scroll (no floating)
+      gsap.set(cards, { scale: 0.98, opacity: 0.5 })
+      gsap.set(cards[0], { scale: 1.0, opacity: 1 })
+
+      const loop = gsap.timeline({
+        scrollTrigger: {
+          trigger: '#why-different',
+          start: 'top 70%',
+          end: 'bottom 30%',
+          scrub: 1,
+        },
+        defaults: { ease: 'none' },
       })
+      loop
+        .to(cards[0], { scale: 0.98, opacity: 0.5 }, 0)
+        .to(cards[1], { scale: 1.0, opacity: 1 }, 0)
+        .to(cards[1], { scale: 0.98, opacity: 0.5 }, 1)
+        .to(cards[2], { scale: 1.0, opacity: 1 }, 1)
+        .to(cards[2], { scale: 0.98, opacity: 0.5 }, 2)
+        .to(cards[0], { scale: 1.0, opacity: 1 }, 2)
 
       // Words: seamless breathing shimmer, per-word phase offset, no dead pause
       gsap.set('.scrub-word', { opacity: 0.22 })
