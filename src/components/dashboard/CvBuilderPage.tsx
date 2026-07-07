@@ -99,29 +99,24 @@ export default function CvBuilderPage() {
     }
   }, [cv, language, user, fetchWithRetry])
 
+  // CV Builder: do NOT write to Firestore.
+  // Firestore update happens only on CV upload (Settings) or when user updates Settings.
   const handleSave = useCallback(async () => {
-    if (!user) return
     setSaving(true)
     setSaveMsg('')
     try {
-      await saveCvData(user.uid, cv)
-      setSaveMsg('Saved!')
+      // no-op: keep local changes only
+      setSaveMsg('Saved locally!')
       setTimeout(() => setSaveMsg(''), 2000)
-    } catch {
-      setSaveMsg('Failed to save')
     } finally {
       setSaving(false)
     }
-  }, [user, cv])
+  }, [])
 
+  // Disable debounce auto-save to Firestore.
   useEffect(() => {
-    if (!user || loading) return
-    if (saveTimer.current) clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(() => {
-      saveCvData(user.uid, cv).catch(() => {})
-    }, 2000)
-    return () => { if (saveTimer.current) clearTimeout(saveTimer.current) }
-  }, [cv, user, loading])
+    // no-op
+  }, [])
 
   const handleDownloadPdf = useCallback(() => {
     const el = document.createElement('style')

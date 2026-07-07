@@ -55,8 +55,11 @@ export async function sendEmail(uid: string, mailData: {
     `,
   }
 
-  if (mailData.fileUrl) {
-    const cvRes = await fetch(mailData.fileUrl)
+  // Always use the latest CV stored in Firestore (saved via Settings/upload).
+  const cvPathFromFirestore: string | undefined = userData.cvPath
+  if (cvPathFromFirestore) {
+    const cvRes = await fetch(cvPathFromFirestore)
+    if (!cvRes.ok) throw new Error(`Failed to fetch cvPath: ${cvPathFromFirestore}`)
     const cvBuffer = await cvRes.arrayBuffer()
     mailOptions.attachments = [
       {
@@ -65,6 +68,9 @@ export async function sendEmail(uid: string, mailData: {
       },
     ]
   }
+
+  // Log: which cvPath is used for this email
+  const cvPathToLog = cvPathFromFirestore || ''
 
   await transporter.sendMail(mailOptions)
   await incrementUsage(uid, 'send')
@@ -79,7 +85,7 @@ export async function sendEmail(uid: string, mailData: {
       subjek: mailData.subjek || '',
       status: 'sent',
       sentAt: new Date().toISOString(),
-      cvPath: mailData.fileUrl || '',
+      cvPath: cvPathToLog,
     })
   } catch { /* non-critical */ }
 }
