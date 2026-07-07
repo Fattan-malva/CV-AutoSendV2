@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n-context'
-import { SquaresFour, ClockCounterClockwise, Gear, ArrowUp, SignOut, X } from 'phosphor-react'
+import { SquaresFour, ClockCounterClockwise, Gear, FileText, ArrowUp, SignOut, X } from 'phosphor-react'
 
 const navLinks = [
   {
@@ -11,6 +11,12 @@ const navLinks = [
     labelKey: 'dashboard.title',
     icon: SquaresFour,
     href: '/dashboard',
+  },
+  {
+    id: 'cv-builder',
+    labelKey: 'CV Builder',
+    icon: FileText,
+    href: '/dashboard/cv-builder',
   },
   {
     id: 'history',
@@ -32,7 +38,7 @@ export default function Sidebar({ onUpgrade, onLogout, onClose }: { onUpgrade: (
   const { user } = useAuth()
   const { t } = useI18n()
 
-  const active = pathname === '/dashboard/history' ? 'history' : pathname === '/dashboard/settings' ? 'settings' : 'dashboard'
+  const active = pathname === '/dashboard/history' ? 'history' : pathname === '/dashboard/settings' ? 'settings' : pathname === '/dashboard/cv-builder' ? 'cv-builder' : 'dashboard'
 
   return (
     <aside className="w-56 shrink-0 bg-surface border-r border-border flex flex-col h-full">
@@ -65,7 +71,9 @@ export default function Sidebar({ onUpgrade, onLogout, onClose }: { onUpgrade: (
                   ? t.dashboard.title
                   : link.id === 'history'
                   ? t.dashboard.history
-                  : t.dashboard.settings}
+                  : link.id === 'settings'
+                  ? t.dashboard.settings
+                  : 'CV Builder'}
               </span>
             </button>
           )

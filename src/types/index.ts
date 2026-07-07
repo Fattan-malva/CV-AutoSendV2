@@ -49,4 +49,69 @@ export interface ApplicationLog {
   error?: string
 }
 
-export type NavItem = 'dashboard' | 'history' | 'settings'
+export type NavItem = 'dashboard' | 'history' | 'settings' | 'cv-builder'
+
+export type CvTemplateId = 'ats-classic' | 'ats-modern' | 'ats-minimal'
+
+export interface CvPersonalInfo {
+  fullName: string
+  email: string
+  phone: string
+  address: string
+  linkedin: string
+  portfolio: string
+  photo: string
+}
+
+export interface CvExperience {
+  id: string
+  company: string
+  position: string
+  startDate: string
+  endDate: string
+  current: boolean
+  description: string
+  bulletPoints: string[]
+}
+
+export interface CvEducation {
+  id: string
+  institution: string
+  degree: string
+  field: string
+  gpa: string
+  startDate: string
+  endDate: string
+}
+
+export interface CvSkill {
+  category: string
+  items: string[]
+}
+
+export interface CvCertification {
+  name: string
+  issuer: string
+  date: string
+}
+
+export interface CvLanguage {
+  language: string
+  proficiency: string
+}
+
+export type CvSectionId = 'personalInfo' | 'summary' | 'experience' | 'education' | 'skills' | 'certifications' | 'languages'
+
+export interface CvData {
+  templateId: CvTemplateId
+  language: 'id' | 'en'
+  primaryColor: string
+  personalInfo: CvPersonalInfo
+  summary: string
+  experience: CvExperience[]
+  education: CvEducation[]
+  skills: CvSkill[]
+  certifications: CvCertification[]
+  languages: CvLanguage[]
+  sectionOrder: CvSectionId[]
+}
