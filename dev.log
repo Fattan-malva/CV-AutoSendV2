@@ -1,0 +1,43 @@
+
+> ceefy@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://169.254.72.166:3000
+- Environments: .env
+✓ Ready in 742ms
+- Experiments (use with caution):
+  · serverActions
+
+ GET /dashboard 200 in 964ms (next.js: 419ms, application-code: 546ms)
+ GET /dashboard/settings 200 in 146ms (next.js: 61ms, application-code: 84ms)
+ POST /api/analyze 500 in 6.2s (next.js: 391ms, application-code: 5.8s)
+ GET /dashboard/settings 200 in 375ms (next.js: 120ms, application-code: 254ms)
+ GET /dashboard/settings 200 in 240ms (next.js: 13ms, application-code: 227ms)
+ GET /dashboard/settings 200 in 191ms (next.js: 34ms, application-code: 157ms)
+ GET /dashboard/settings 200 in 191ms (next.js: 105ms, application-code: 86ms)
+ GET /dashboard/settings 200 in 194ms (next.js: 7ms, application-code: 187ms)
+ GET /dashboard/settings 200 in 193ms (next.js: 69ms, application-code: 125ms)
+ GET /dashboard/settings 200 in 215ms (next.js: 6ms, application-code: 210ms)
+ GET /dashboard/settings 200 in 176ms (next.js: 9ms, application-code: 166ms)
+ GET /dashboard/settings 200 in 160ms (next.js: 38ms, application-code: 122ms)
+ GET /dashboard/settings 200 in 159ms (next.js: 63ms, application-code: 96ms)
+ GET /dashboard/settings 200 in 162ms (next.js: 8ms, application-code: 154ms)
+ GET /dashboard/settings 200 in 184ms (next.js: 94ms, application-code: 91ms)
+ GET /dashboard/settings 200 in 181ms (next.js: 5ms, application-code: 176ms)
+ GET /dashboard/settings 200 in 155ms (next.js: 7ms, application-code: 148ms)
+ GET /dashboard/settings 200 in 125ms (next.js: 33ms, application-code: 92ms)
+ GET /dashboard/settings 200 in 127ms (next.js: 5ms, application-code: 122ms)
+ GET /dashboard/settings 200 in 128ms (next.js: 66ms, application-code: 62ms)
+ GET /dashboard/settings 200 in 69ms (next.js: 33ms, application-code: 36ms)
+ GET /dashboard/settings 200 in 963ms (next.js: 10ms, application-code: 953ms)
+ GET /dashboard 200 in 91ms (next.js: 40ms, application-code: 52ms)
+ POST /api/analyze 500 in 7.2s (next.js: 347ms, application-code: 6.9s)
+ POST /api/analyze 500 in 17.2s (next.js: 37ms, application-code: 17.2s)
+ POST /api/analyze 500 in 12.6s (next.js: 9ms, application-code: 12.6s)
+ POST /api/analyze 200 in 60s (next.js: 5ms, application-code: 60s)
+ POST /api/analyze 500 in 1578ms (next.js: 4ms, application-code: 1574ms)
+ POST /api/analyze 500 in 427ms (next.js: 6ms, application-code: 421ms)
+ POST /api/analyze 200 in 49s (next.js: 4ms, application-code: 49s)
+[?25h

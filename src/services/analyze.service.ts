@@ -1,14 +1,9 @@
-import { GoogleGenAI } from '@google/genai'
 import { encrypt } from '@/lib/crypto'
 import type { AnalysisResult } from '@/types'
 
-function getAi() {
-  const key = process.env.GOOGLE_AI_STUDIO_API_KEY
-  if (!key) return null
-  return new GoogleGenAI({ apiKey: key })
-}
-
 const MODEL = process.env.GOOGLE_AI_STUDIO_MODEL || 'gemma-4-31b-it'
+const API_KEY = process.env.GOOGLE_AI_STUDIO_API_KEY || ''
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`
 
 const SYSTEM_PROMPT = (nama: string) => `Kamu adalah asisten yang membantu melamar kerja dengan nama pengirim: "${nama}".
 Analisis brosur lowongan kerja dan keluarkan JSON dengan field:
@@ -21,46 +16,47 @@ Analisis brosur lowongan kerja dan keluarkan JSON dengan field:
 - penutup: 1 paragraf penutup. Akhiri dengan "Hormat saya,\\n${nama}" (gunakan \\n untuk newline)`
 
 export async function analyzeBrochure(imageData: string, mimeType: string, senderName: string): Promise<AnalysisResult> {
-  const ai = getAi()
-  if (!ai) {
+  if (!API_KEY) {
     throw new Error('AI not configured')
   }
 
-  const prompt = SYSTEM_PROMPT(senderName || 'Pelamar')
+  const body = {
+    contents: [
+      { role: 'user', parts: [{ text: SYSTEM_PROMPT(senderName || 'Pelamar') }] },
+      {
+        role: 'user',
+        parts: [
+          { text: 'Analisis brosur lowongan ini:' },
+          { inlineData: { mimeType, data: imageData } },
+        ],
+      },
+    ],
+  }
 
-  const contents = [
-    { role: 'user', parts: [{ text: prompt }] },
-    {
-      role: 'user',
-      parts: [
-        { text: 'Analisis brosur lowongan ini:' },
-        { inlineData: { mimeType, data: imageData } },
-      ],
-    },
-  ]
-
-  const resp = await ai.models.generateContent({
-    model: MODEL,
-    contents,
-    config: {},
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   })
 
-  const text = resp.text
+  if (!res.ok) {
+    const errText = await res.text()
+    throw new Error(errText)
+  }
+
+  const data = await res.json()
+  const part = data?.candidates?.[0]?.content?.parts?.find((p: { thought?: boolean }) => !p.thought)
+  const text = part?.text || data?.candidates?.[0]?.content?.parts?.[0]?.text
+
   if (!text) {
     throw new Error('AI returned empty response')
   }
 
   let jsonText = text.trim()
-
   const jsonBlock = jsonText.match(/```(?:json)?\s*([\s\S]*?)```/)
-  if (jsonBlock) {
-    jsonText = jsonBlock[1].trim()
-  }
-
+  if (jsonBlock) jsonText = jsonBlock[1].trim()
   const braceMatch = jsonText.match(/\{[\s\S]*\}/)
-  if (braceMatch) {
-    jsonText = braceMatch[0]
-  }
+  if (braceMatch) jsonText = braceMatch[0]
 
   try {
     return JSON.parse(jsonText) as AnalysisResult
