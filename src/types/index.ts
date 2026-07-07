@@ -16,6 +16,7 @@ export interface UserConfig {
   lemonSqueezyCustomerId: string | null
   lemonSqueezySubscriptionId: string | null
   createdAt: string
+  analyzeLanguage: 'id' | 'en'
 }
 
 export interface AnalysisResult {
@@ -33,6 +34,8 @@ export interface LandingUsage {
   timestamp: string
 }
 
+export type AppStatus = 'sent' | 'failed' | 'waiting' | 'approved' | 'rejected'
+
 export interface ApplicationLog {
   id: string
   uid: string
@@ -40,7 +43,7 @@ export interface ApplicationLog {
   posisi: string
   email: string
   subjek: string
-  status: 'sent' | 'failed'
+  status: AppStatus
   sentAt: string
   cvPath: string
   error?: string

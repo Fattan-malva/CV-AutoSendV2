@@ -97,6 +97,8 @@ const id = {
     missingConfig: 'Konfigurasi belum lengkap',
     save: 'Simpan',
     saving: 'Menyimpan...',
+    analyzeLanguage: 'Bahasa Analisis',
+    analyzeLanguageDesc: 'AI akan menghasilkan konten email dalam bahasa yang dipilih.',
   },
   dashboard: {
     title: 'Dashboard',

@@ -97,6 +97,8 @@ const en = {
     missingConfig: 'Missing configuration',
     save: 'Save',
     saving: 'Saving...',
+    analyzeLanguage: 'Analysis Language',
+    analyzeLanguageDesc: 'AI will generate email content in the selected language.',
   },
   dashboard: {
     title: 'Dashboard',

@@ -51,6 +51,7 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
           plan: 'free',
           usageAnalyze: 0,
           usageSend: 0,
+          analyzeLanguage: 'id',
           lemonSqueezyCustomerId: null,
           lemonSqueezySubscriptionId: null,
           createdAt: new Date().toISOString(),

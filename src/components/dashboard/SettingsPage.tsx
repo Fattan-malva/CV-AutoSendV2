@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Gear, ArrowSquareOut, Upload, FileText, CheckCircle, XCircle } from 'phosphor-react'
+import { Gear, ArrowSquareOut, Upload, FileText, CheckCircle, XCircle, Translate } from 'phosphor-react'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n-context'
 import Skeleton from '@/components/ui/Skeleton'
@@ -25,6 +25,7 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
   const [cvFile, setCvFile] = useState<File | null>(null)
   const [cvPreview, setCvPreview] = useState(config.cvPath || '')
   const [smtpConfigured, setSmtpConfigured] = useState(!!config.smtpPass)
+  const [analyzeLanguage, setAnalyzeLanguage] = useState<'id' | 'en'>(config.analyzeLanguage || 'id')
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
   const [previewLoading, setPreviewLoading] = useState(false)
@@ -39,6 +40,7 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
     setSmtpConfigured(!!config.smtpPass)
     setSenderName(config.senderName || user?.displayName || '')
     setCvPreview(config.cvPath || '')
+    setAnalyzeLanguage(config.analyzeLanguage || 'id')
   }, [config])
 
   const openCvPreview = async () => {
@@ -113,7 +115,7 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
         cvPath = data.url
         setCvPreview(cvPath)
       }
-      const saveBody: Record<string, unknown> = { smtpHost, smtpPort: Number(smtpPort), smtpUser, senderName: senderName || user?.displayName || (smtpUser ? smtpUser.split('@')[0] : '') || '', cvPath }
+      const saveBody: Record<string, unknown> = { smtpHost, smtpPort: Number(smtpPort), smtpUser, senderName: senderName || user?.displayName || (smtpUser ? smtpUser.split('@')[0] : '') || '', cvPath, analyzeLanguage }
       if (smtpPass) saveBody.smtpPass = smtpPass
       const saveRes = await fetch('/api/save-settings', {
         method: 'POST',
@@ -124,7 +126,7 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
       setSmtpConfigured(true)
       setSmtpPass('')
       setSaveMsg('Disimpan!')
-      onConfigUpdate({ ...config, smtpHost, smtpPort: Number(smtpPort), smtpUser, smtpPass: smtpPass ? 'encrypted' : config.smtpPass, senderName: senderName || user?.displayName || (smtpUser ? smtpUser.split('@')[0] : '') || '', cvPath })
+      onConfigUpdate({ ...config, smtpHost, smtpPort: Number(smtpPort), smtpUser, smtpPass: smtpPass ? 'encrypted' : config.smtpPass, senderName: senderName || user?.displayName || (smtpUser ? smtpUser.split('@')[0] : '') || '', cvPath, analyzeLanguage })
       setTimeout(() => setSaveMsg(''), 2000)
     } catch (e) {
       setSaveMsg(e instanceof Error ? e.message : 'Gagal menyimpan')
@@ -203,6 +205,28 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
           <div>
             <label className="text-[10px] uppercase tracking-wider text-muted">{t.signup.senderName}</label>
             <input value={senderName} onChange={(e) => setSenderName(e.target.value)} className={inputClass} />
+          </div>
+
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-muted flex items-center gap-1.5">
+              <Translate size={12} />
+              {t.signup.analyzeLanguage}
+            </label>
+            <div className="mt-1.5 flex gap-2">
+              <button
+                onClick={() => setAnalyzeLanguage('id')}
+                className={`flex-1 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 ${analyzeLanguage === 'id' ? 'bg-accent text-background' : 'bg-surface border border-border text-muted hover:text-foreground'}`}
+              >
+                Indonesia
+              </button>
+              <button
+                onClick={() => setAnalyzeLanguage('en')}
+                className={`flex-1 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 ${analyzeLanguage === 'en' ? 'bg-accent text-background' : 'bg-surface border border-border text-muted hover:text-foreground'}`}
+              >
+                English
+              </button>
+            </div>
+            <p className="text-[10px] text-muted mt-1.5">{t.signup.analyzeLanguageDesc}</p>
           </div>
 
           <div>

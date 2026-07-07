@@ -46,6 +46,7 @@ export default function LoginPage() {
           plan: 'free',
           usageAnalyze: 0,
           usageSend: 0,
+          analyzeLanguage: 'id',
           lemonSqueezyCustomerId: null,
           lemonSqueezySubscriptionId: null,
           createdAt: new Date().toISOString(),

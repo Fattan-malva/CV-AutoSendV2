@@ -122,6 +122,7 @@ export function ProcessingProvider({
         body: JSON.stringify({
           imageData, mimeType: item.file.type, uid: u.uid,
           senderName: configRef.current?.senderName || u.displayName || '',
+          language: configRef.current?.analyzeLanguage || 'id',
         }),
       })
       const data = await res.json()

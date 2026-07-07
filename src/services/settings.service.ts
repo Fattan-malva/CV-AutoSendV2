@@ -8,6 +8,7 @@ export async function saveSettings(uid: string, body: {
   smtpPass?: string
   senderName?: string
   cvPath?: string
+  analyzeLanguage?: 'id' | 'en'
 }) {
   const db = getDbAdmin()
   if (!db) throw new Error('Server config error')
@@ -29,6 +30,10 @@ export async function saveSettings(uid: string, body: {
 
   if (body.cvPath) {
     updateData.cvPath = body.cvPath
+  }
+
+  if (body.analyzeLanguage) {
+    updateData.analyzeLanguage = body.analyzeLanguage
   }
 
   await db.collection('users').doc(uid).set(updateData, { merge: true })
