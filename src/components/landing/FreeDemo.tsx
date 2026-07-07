@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Upload } from 'lucide-react'
+import { Upload, ArrowRight, Warning } from 'phosphor-react'
 import { useI18n } from '@/lib/i18n-context'
 import { decrypt } from '@/lib/crypto'
-import WindowFrame from '@/components/ui/WindowFrame'
+import { useScrollReveal } from '@/lib/use-scroll-reveal'
 import Skeleton from '@/components/ui/Skeleton'
 import type { AnalysisResult } from '@/types'
 
@@ -13,7 +13,8 @@ interface FreeDemoProps {
 }
 
 export default function FreeDemo({ onOpenAuth }: FreeDemoProps) {
-  const { t, locale } = useI18n()
+  const { t } = useI18n()
+  const { ref, isVisible } = useScrollReveal({ threshold: 0.05 })
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState('')
   const [loading, setLoading] = useState(false)
@@ -77,90 +78,116 @@ export default function FreeDemo({ onOpenAuth }: FreeDemoProps) {
   }
 
   return (
-    <section id="demo" className="py-20 px-4">
-      <div className="max-w-lg mx-auto">
-        <div className="text-center mb-6 font-mono text-xs text-zinc-500">
-          <span className="text-green-400">~/demo</span>
-          <span className="text-zinc-600"> $ ./try --free</span>
+    <section id="demo" className="py-28 px-4">
+      <div ref={ref} className={`max-w-2xl mx-auto transition-all duration-900 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+        isVisible ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-16 blur-md'
+      }`}>
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-subtle/50 mb-6">
+            <span className="text-[10px] uppercase tracking-[0.2em] font-medium text-muted">Demo</span>
+          </div>
+          <h2 className="text-4xl sm:text-5xl font-serif text-foreground leading-[1.05] tracking-tight">
+            Coba Gratis
+          </h2>
         </div>
 
         {used && !result ? (
-          <WindowFrame title="~/demo/used" className="p-8 text-center">
-            <p className="font-mono text-sm text-zinc-400 pt-9">{t.demo.used}</p>
-            <p className="mt-2 font-mono text-xs text-zinc-500 pb-6 break-words whitespace-normal max-w-full">
-              {t.demo.usedDesc}
-            </p>
-          </WindowFrame>
+          <div className="p-1.5 rounded-[2rem] bg-border/30">
+            <div className="rounded-[calc(2rem-0.375rem)] bg-card p-10 text-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
+              <Warning size={28} className="text-accent mx-auto mb-4" />
+              <p className="text-sm text-foreground">{t.demo.used}</p>
+              <p className="mt-2 text-xs text-muted break-words whitespace-normal max-w-full">
+                {t.demo.usedDesc}
+              </p>
+              <button
+                onClick={onOpenAuth}
+                className="group inline-flex items-center justify-center gap-2 mt-6 px-5 py-2.5 rounded-full bg-accent text-background text-sm font-medium hover:opacity-90 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
+              >
+                <span>{t.demo.sendEmail}</span>
+                <span className="w-6 h-6 rounded-full bg-background/10 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-300">
+                  <ArrowRight size={12} weight="bold" className="text-background" />
+                </span>
+              </button>
+            </div>
+          </div>
         ) : (
           <>
             {!result && (
-              <WindowFrame title="~/demo/upload">
-                <label className="flex flex-col items-center gap-3 cursor-pointer pt-10">
-                  <div className="w-10 h-10 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center">
-                    <Upload className="w-5 h-5 text-green-400" />
+              <div className="p-1.5 rounded-[2rem] bg-border/30">
+                <div className="rounded-[calc(2rem-0.375rem)] bg-card p-10 text-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
+                  <label className="flex flex-col items-center gap-3 cursor-pointer">
+                    <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
+                      <Upload size={22} className="text-accent" />
+                    </div>
+                    <span className="text-sm text-muted">{file ? file.name : 'Upload brosur (PDF/JPG/PNG)'}</span>
+                    <input
+                      type="file"
+                      accept=".pdf,image/*"
+                      className="hidden"
+                      onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+                    />
+                  </label>
+
+                  {preview && (
+                    <img src={preview} alt="preview" className="mt-6 rounded-xl max-h-40 w-auto mx-auto object-cover" />
+                  )}
+
+                  <div className="mt-6 flex justify-center">
+                    <button
+                      onClick={handleAnalyze}
+                      disabled={!file || loading}
+                      className="group inline-flex items-center justify-center gap-2 bg-accent text-background rounded-full px-6 py-3 font-medium text-sm hover:opacity-90 disabled:opacity-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] min-w-[180px]"
+                    >
+                      {loading ? (
+                        <>
+                          <Skeleton className="w-4 h-4 rounded-full" />
+                          {t.demo.loading}
+                        </>
+                      ) : t.demo.analyze}
+                      {!loading && (
+                        <span className="w-6 h-6 rounded-full bg-background/10 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-300">
+                          <ArrowRight size={12} weight="bold" className="text-background" />
+                        </span>
+                      )}
+                    </button>
                   </div>
-                  <span className="font-mono text-xs text-zinc-400">{file ? file.name : 'Upload brosur (PDF/JPG/PNG)'}</span>
-                  <input
-                    type="file"
-                    accept=".pdf,image/*"
-                    className="hidden"
-                    onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
-                  />
-                </label>
 
-                {preview && (
-                  <img src={preview} alt="preview" className="mt-4 rounded-lg max-h-40 w-auto mx-auto object-cover" />
-                )}
-
-                <div className="mt-4 mb-6 flex justify-center">
-                  <button
-                    onClick={handleAnalyze}
-                    disabled={!file || loading}
-                    className="font-mono text-xs bg-green-400 text-zinc-950 rounded-xl px-6 py-2.5 font-medium hover:bg-green-300 disabled:opacity-40 transition-colors min-w-[160px] flex items-center justify-center gap-2"
-                  >
-                    {loading ? (
-                      <>
-                        <Skeleton className="w-4 h-4 rounded-full" />
-                        {t.demo.loading}
-                      </>
-                    ) : t.demo.analyze}
-                  </button>
+                  {error && <p className="mt-4 text-xs text-red-400">{error}</p>}
                 </div>
-
-                {error && <p className="mt-3 font-mono text-xs text-red-400">{error}</p>}
-              </WindowFrame>
+              </div>
             )}
 
             {result && (
-              <div className="mt-6">
-                <WindowFrame title="~/demo/result" className="p-6 space-y-3">
-                  <div className="pl-3 flex items-center gap-2 mb-3">
-                    <span className="text-green-400 font-mono text-xs">$</span>
-                    <span className="text-green-400 font-mono text-xs">./result.json</span>
-                  </div>
-                  {[
-                    { label: 'Subjek', value: result.subjek },
-                    { label: 'Email', value: result.email },
-                    { label: 'Perusahaan', value: result.nama_perusahaan },
-                    { label: 'Posisi', value: result.posisi },
-                    { label: 'Intro', value: result.intro },
-                    { label: 'Alasan', value: result.alasan },
-                    { label: 'Penutup', value: result.penutup },
-                  ].map((f) => (
-                    <div key={f.label}>
-                      <label className="font-mono text-[10px] text-zinc-500">{f.label}</label>
-                      <p className="font-mono text-xs text-zinc-300 mt-0.5">{f.value}</p>
+              <div className="mt-4">
+                <div className="p-1.5 rounded-[2rem] bg-border/30">
+                  <div className="rounded-[calc(2rem-0.375rem)] bg-card p-7 space-y-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
+                    {[
+                      { label: 'Subjek', value: result.subjek },
+                      { label: 'Email', value: result.email },
+                      { label: 'Perusahaan', value: result.nama_perusahaan },
+                      { label: 'Posisi', value: result.posisi },
+                      { label: 'Intro', value: result.intro },
+                      { label: 'Alasan', value: result.alasan },
+                      { label: 'Penutup', value: result.penutup },
+                    ].map((f) => (
+                      <div key={f.label}>
+                        <label className="text-[10px] uppercase tracking-wider text-muted">{f.label}</label>
+                        <p className="text-xs text-foreground mt-0.5">{f.value}</p>
+                      </div>
+                    ))}
+                    <div className="pt-4 border-t border-border">
+                      <button
+                        onClick={onOpenAuth}
+                        className="group w-full flex items-center justify-center gap-2 bg-accent text-background rounded-full px-5 py-3 font-medium text-sm hover:opacity-90 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
+                      >
+                        <span>{t.demo.sendEmail}</span>
+                        <span className="w-6 h-6 rounded-full bg-background/10 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-300">
+                          <ArrowRight size={12} weight="bold" className="text-background" />
+                        </span>
+                      </button>
                     </div>
-                  ))}
-                  <div className="pt-4 border-t border-zinc-800">
-                    <button
-                      onClick={onOpenAuth}
-                      className="w-full font-mono text-xs bg-green-400 text-zinc-950 rounded-xl px-4 py-2.5 font-medium hover:bg-green-300 transition-colors"
-                    >
-                      {'>_'} {t.demo.sendEmail}
-                    </button>
                   </div>
-                </WindowFrame>
+                </div>
               </div>
             )}
           </>

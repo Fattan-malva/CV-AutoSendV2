@@ -3,30 +3,30 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n-context'
-import { LayoutDashboard, History, Settings, ArrowUp, LogOut } from 'lucide-react'
+import { SquaresFour, ClockCounterClockwise, Gear, ArrowUp, SignOut, X } from 'phosphor-react'
 
 const navLinks = [
   {
     id: 'dashboard',
     labelKey: 'dashboard.title',
-    icon: LayoutDashboard,
+    icon: SquaresFour,
     href: '/dashboard',
   },
   {
     id: 'history',
     labelKey: 'dashboard.history',
-    icon: History,
+    icon: ClockCounterClockwise,
     href: '/dashboard/history',
   },
   {
     id: 'settings',
     labelKey: 'dashboard.settings',
-    icon: Settings,
+    icon: Gear,
     href: '/dashboard/settings',
   },
 ]
 
-export default function Sidebar({ onUpgrade, onLogout }: { onUpgrade: () => void; onLogout: () => void }) {
+export default function Sidebar({ onUpgrade, onLogout, onClose }: { onUpgrade: () => void; onLogout: () => void; onClose?: () => void }) {
   const pathname = usePathname()
   const router = useRouter()
   const { user } = useAuth()
@@ -35,31 +35,32 @@ export default function Sidebar({ onUpgrade, onLogout }: { onUpgrade: () => void
   const active = pathname === '/dashboard/history' ? 'history' : pathname === '/dashboard/settings' ? 'settings' : 'dashboard'
 
   return (
-    <aside className="w-56 shrink-0 bg-zinc-900/50 border-r border-zinc-800 flex flex-col h-full">
-      {/* Logo */}
-      <div className="h-14 flex items-center px-4 border-b border-zinc-800">
-        <div className="flex items-center gap-2 font-mono text-sm text-zinc-400">
-          <span className="text-zinc-600">~</span>
-          <span className="text-green-400">{t.dashboard.title.toLowerCase()}</span>
+    <aside className="w-56 shrink-0 bg-surface border-r border-border flex flex-col h-full">
+      <div className="h-16 flex items-center justify-between px-5 border-b border-border">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-serif font-semibold text-foreground tracking-tight">cv-autosend</span>
         </div>
+        <button onClick={onClose} className="lg:hidden text-muted hover:text-foreground transition-colors">
+          <X size={18} />
+        </button>
       </div>
 
-      {/* Nav Links */}
-      <nav className="flex-1 py-3 space-y-0.5 px-2">
+      <nav className="flex-1 py-4 space-y-1 px-3">
         {navLinks.map((link) => {
           const Icon = link.icon
+          const isActive = active === link.id
           return (
             <button
               key={link.id}
               onClick={() => router.push(link.href)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg font-mono text-xs text-left transition-colors ${
-                active === link.id
-                  ? 'bg-green-400/10 border border-green-400/20'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                isActive
+                  ? 'bg-accent/10 border border-accent/20 text-foreground'
+                  : 'text-muted hover:text-foreground hover:bg-subtle border border-transparent'
               }`}
             >
-              <Icon className={`w-4 h-4 ${active === link.id ? 'text-zinc-400 md:text-green-400' : ''}`} />
-              <span className={active === link.id ? 'text-zinc-400 md:text-green-400' : ''}>
+              <Icon size={18} className={isActive ? 'text-accent' : ''} weight="duotone" />
+              <span className="text-sm font-medium">
                 {link.id === 'dashboard'
                   ? t.dashboard.title
                   : link.id === 'history'
@@ -71,33 +72,31 @@ export default function Sidebar({ onUpgrade, onLogout }: { onUpgrade: () => void
         })}
       </nav>
 
-      {/* Upgrade */}
-      <div className="px-3 py-3 border-t border-zinc-800">
+      <div className="px-3 py-3 border-t border-border">
         <button
           onClick={onUpgrade}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg font-mono text-xs text-green-400 hover:text-green-300 hover:bg-green-400/5 transition-colors"
+          className="group w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-background bg-accent text-sm font-medium hover:opacity-90 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
         >
-          <ArrowUp className="w-4 h-4" />
           <span>{t.dashboard.upgrade}</span>
+          <ArrowUp size={16} weight="bold" className="group-hover:translate-y-[-1px] transition-transform duration-300" />
         </button>
       </div>
 
-      {/* User Info + Logout */}
-      <div className="px-3 py-3 border-t border-zinc-800">
-        <div className="flex items-center gap-2 px-1 mb-2">
-          <div className="w-6 h-6 rounded-full bg-zinc-800 text-zinc-400 font-mono text-[10px] font-medium flex items-center justify-center border border-zinc-700">
+      <div className="px-3 py-3 border-t border-border">
+        <div className="flex items-center gap-2 px-2 mb-2">
+          <div className="w-8 h-8 rounded-full bg-subtle text-foreground text-xs font-medium flex items-center justify-center border border-border">
             {(user?.displayName || user?.email || 'U').charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-mono text-[11px] text-zinc-300 truncate">{user?.displayName || user?.email}</p>
-            <p className="font-mono text-[9px] text-zinc-500 truncate">{user?.email}</p>
+            <p className="text-xs text-foreground truncate">{user?.displayName || user?.email}</p>
+            <p className="text-[10px] text-muted truncate">{user?.email}</p>
           </div>
         </div>
         <button
           onClick={onLogout}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg font-mono text-xs text-red-400 hover:text-red-300 hover:bg-red-400/5 transition-colors"
+          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-muted hover:text-red-400 hover:bg-red-400/5 transition-all duration-300 border border-transparent hover:border-red-400/20"
         >
-          <LogOut className="w-4 h-4" />
+          <SignOut size={18} />
           <span>{t.dashboard.logout}</span>
         </button>
       </div>

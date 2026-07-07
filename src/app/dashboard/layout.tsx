@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { doc, getDoc } from 'firebase/firestore'
-import { Sun, Moon, Menu, Loader } from 'lucide-react'
+import { Sun, Moon, List, Spinner } from 'phosphor-react'
 import { db } from '@/lib/firebase'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n-context'
@@ -33,24 +33,24 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 
   if (authLoading) {
     return (
-    <div className="h-screen overflow-hidden flex">
-        <aside className="w-56 shrink-0 bg-zinc-900/50 border-r border-zinc-800 p-4 space-y-4 overflow-y-auto">
+      <div className="h-screen overflow-hidden flex">
+        <aside className="w-56 shrink-0 bg-surface border-r border-border p-4 space-y-4 overflow-y-auto">
           <Skeleton className="h-5 w-28" />
           <div className="space-y-2 pt-4">
-            {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-9 w-full rounded-lg" />)}
+            {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-10 w-full rounded-xl" />)}
           </div>
           <div className="pt-4 space-y-2">
-            <Skeleton className="h-9 w-full rounded-lg" />
-            <Skeleton className="h-9 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-xl" />
+            <Skeleton className="h-10 w-full rounded-xl" />
           </div>
         </aside>
         <main className="flex-1 p-6 space-y-6">
           <Skeleton className="h-6 w-48" />
           <div className="grid grid-cols-2 gap-6">
-            <Skeleton className="h-48 rounded-2xl" />
-            <Skeleton className="h-48 rounded-2xl" />
+            <Skeleton className="h-48 rounded-[2rem]" />
+            <Skeleton className="h-48 rounded-[2rem]" />
           </div>
-          <Skeleton className="h-32 rounded-2xl" />
+          <Skeleton className="h-32 rounded-[2rem]" />
         </main>
       </div>
     )
@@ -65,62 +65,51 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="h-screen overflow-hidden flex">
-      {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-background/80 backdrop-blur-2xl lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
-      <div className={`fixed lg:static inset-y-0 left-0 z-50 w-56 overflow-y-auto transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-200`}>
-        <Sidebar onUpgrade={() => setUpgradeOpen(true)} onLogout={() => setLogoutOpen(true)} />
+      <div className={`fixed lg:static inset-y-0 left-0 z-50 w-56 overflow-y-auto transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]`}>
+        <Sidebar onUpgrade={() => setUpgradeOpen(true)} onLogout={() => setLogoutOpen(true)} onClose={() => setSidebarOpen(false)} />
       </div>
 
-      {/* Main Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Bar */}
-        <header className="h-14 shrink-0 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800 flex items-center justify-between px-4">
+        <header className="h-16 shrink-0 bg-surface/80 backdrop-blur-2xl border-b border-border flex items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden text-zinc-400 hover:text-zinc-200 transition-colors">
-              <Menu className="w-5 h-5" />
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden text-muted hover:text-foreground transition-colors">
+              <List size={20} />
             </button>
-            <div className="flex items-center gap-2 font-mono text-sm text-zinc-400">
-              <span className="text-zinc-600">~</span>
-              <span className="text-zinc-400">{pageTitle.toLowerCase()}</span>
-              <span className="text-zinc-600">$</span>
-              <div className="w-2 h-4 bg-green-400 animate-blink" />
-            </div>
-            {/* Processing indicator */}
+            <h1 className="text-lg font-serif text-foreground capitalize">{pageTitle}</h1>
             {(bulkRunning || sendingBulk) && (
-              <div className="flex items-center gap-1.5 px-2 py-1 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                <Loader className="w-3 h-3 text-amber-400 animate-spin" />
-                <span className="font-mono text-[10px] text-amber-400 uppercase">
+              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-accent/10 border border-accent/20 rounded-full">
+                <Spinner size={14} className="text-accent animate-spin" />
+                <span className="text-[10px] text-accent uppercase tracking-wider">
                   {bulkRunning ? t.dashboard.analyzing : t.dashboard.sending}
                 </span>
               </div>
             )}
           </div>
-          <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-zinc-900 rounded-lg border border-zinc-800">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-              <span className="font-mono text-[10px] text-zinc-500">
+          <div className="flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-subtle rounded-full border border-border">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+              <span className="text-[10px] text-muted">
                 {isPro ? t.dashboard.proMode : `${usageAnalyze}/${analyzeLimit} ${t.dashboard.usageAnalyze.toLowerCase()}`}
               </span>
             </div>
             <button onClick={toggleTheme}
-              className="font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-muted hover:text-foreground hover:bg-subtle transition-all duration-300 border border-border"
               title={theme === 'dark' ? 'Light mode' : 'Dark mode'}>
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
             <button onClick={() => setLocale(locale === 'id' ? 'en' : 'id')}
-              className="font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
+              className="w-9 h-9 rounded-full flex items-center justify-center text-muted hover:text-foreground hover:bg-subtle transition-all duration-300 border border-border text-xs font-medium">
               {locale === 'id' ? 'EN' : 'ID'}
             </button>
           </div>
         </header>
 
-        {/* Page Content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="max-w-5xl mx-auto px-4 py-8">
+          <div className="max-w-6xl mx-auto px-4 py-8">
             {children}
           </div>
         </main>
@@ -149,7 +138,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (authLoading) {
     return (
       <div className="h-screen overflow-hidden flex items-center justify-center">
-        <Skeleton className="w-8 h-8 rounded-full" />
+        <Spinner size={28} className="text-accent animate-spin" />
       </div>
     )
   }

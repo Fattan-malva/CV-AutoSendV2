@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n-context'
-import WindowFrame from '@/components/ui/WindowFrame'
+import { Spinner, X, SignOut } from 'phosphor-react'
 
 interface ConfirmLogoutModalProps {
   open: boolean
@@ -34,66 +34,46 @@ export default function ConfirmLogoutModal({ open, onClose }: ConfirmLogoutModal
   }
 
   return (
-    <>
-      <style>{`
-        @keyframes traffic-light {
-          0%, 100% { opacity: 0.15; transform: scale(0.8); }
-          50% { opacity: 1; transform: scale(1); }
-        }
-        .animate-traffic-light {
-          animation: traffic-light 1.8s ease-in-out infinite;
-        }
-      `}</style>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm" style={{ backgroundColor: 'var(--overlay)' }} onClick={onClose}>
-        <div
-          className="w-full max-w-sm mx-4"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <WindowFrame title={t.logout.title} accent="green" className="p-6 text-center">
-            <div className="flex items-center justify-center gap-2 mb-4 font-mono text-xs text-zinc-500">
-              <span>~ $</span>
-              <span className="text-green-400">{t.logout.cmd}</span>
-            </div>
-
-            <p className="text-sm text-zinc-300 mb-6">{t.logout.prompt}</p>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-2xl" style={{ backgroundColor: 'var(--overlay)' }} onClick={onClose}>
+      <div
+        className="w-full max-w-sm mx-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-1.5 rounded-[2.5rem] bg-border/40">
+          <div className="rounded-[calc(2.5rem-0.375rem)] bg-card p-8 text-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
+            <p className="text-base font-serif text-foreground mb-6">{t.logout.prompt}</p>
 
             {loading && (
-              <div className="flex items-center justify-center gap-4 py-4 mb-4">
-                <div className="w-4 h-4 rounded-full bg-red-500/20 flex items-center justify-center">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-traffic-light" style={{ animationDelay: '0s' }} />
-                </div>
-                <div className="w-4 h-4 rounded-full bg-yellow-500/20 flex items-center justify-center">
-                  <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 animate-traffic-light" style={{ animationDelay: '0.6s' }} />
-                </div>
-                <div className="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center">
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-traffic-light" style={{ animationDelay: '1.2s' }} />
-                </div>
+              <div className="flex items-center justify-center gap-2 py-4 mb-4">
+                <Spinner size={18} className="text-accent animate-spin" />
               </div>
             )}
 
             {error && (
-              <p className="mb-4 font-mono text-xs text-red-400">{error}</p>
+              <p className="mb-4 text-xs text-red-400">{error}</p>
             )}
 
             <div className="flex gap-3">
               <button
                 onClick={onClose}
                 disabled={loading}
-                className="flex-1 border border-zinc-700 text-zinc-300 rounded-xl px-4 py-2.5 font-mono text-sm font-medium hover:bg-zinc-800 disabled:opacity-40 transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 border border-border text-foreground rounded-full px-4 py-3 text-sm font-medium hover:bg-subtle disabled:opacity-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
               >
+                <X size={14} />
                 {t.logout.cancel}
               </button>
               <button
                 onClick={handleLogout}
                 disabled={loading}
-                className="flex-1 bg-red-500 text-white rounded-xl px-4 py-2.5 font-mono text-sm font-medium hover:bg-red-400 disabled:opacity-40 transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 bg-red-500 text-white rounded-full px-4 py-3 text-sm font-medium hover:bg-red-400 disabled:opacity-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
               >
+                <SignOut size={14} weight="bold" />
                 {loading ? 'Loading...' : t.logout.confirm}
               </button>
             </div>
-          </WindowFrame>
+          </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }

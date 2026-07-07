@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Sun, Moon, Menu, X } from 'lucide-react'
+import { Sun, Moon } from 'phosphor-react'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n-context'
 import { useTheme } from '@/lib/theme-context'
@@ -18,103 +18,171 @@ export default function Navbar({ onOpenAuth, onOpenLogout }: NavbarProps) {
   const { theme, toggleTheme } = useTheme()
   const [menuOpen, setMenuOpen] = useState(false)
 
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [menuOpen])
+
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800">
-        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-mono text-sm text-zinc-300">
-            <span className="text-zinc-500">~</span>
-            <span className="text-green-400">cv-autosend</span>
-            <span className="text-zinc-500">$</span>
-            <span className="w-2 h-4 bg-zinc-300 animate-blink" />
+      <nav className="fixed top-0 left-0 right-0 z-50 flex justify-center mt-6 px-4">
+        <div className="flex items-center justify-between w-max min-w-[320px] px-5 py-2.5 rounded-full bg-surface/80 backdrop-blur-2xl border border-border shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]">
+          <Link href="/" className="flex items-center gap-2 mr-6">
+            <span className="text-sm font-serif font-semibold text-foreground tracking-tight">cv-autosend</span>
           </Link>
-          <div className="flex items-center gap-2 md:gap-4">
+
+          <div className="hidden md:flex items-center gap-6">
+            <Link href="/#features" className="text-xs text-muted hover:text-foreground transition-colors duration-300">
+              {t.nav.pricing}
+            </Link>
+            <Link href="/#pricing" className="text-xs text-muted hover:text-foreground transition-colors duration-300">
+              Pricing
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-2">
             <button
               onClick={toggleTheme}
-              className="hidden md:inline-flex font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-muted hover:text-foreground hover:bg-subtle transition-all duration-300"
               title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
             >
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
             </button>
             <button
               onClick={() => setLocale(locale === 'id' ? 'en' : 'id')}
-              className="hidden md:inline-flex font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+              className="hidden md:inline-flex text-xs text-muted hover:text-foreground transition-colors duration-300 w-8 h-8 items-center justify-center rounded-full hover:bg-subtle"
             >
               {locale === 'id' ? 'EN' : 'ID'}
             </button>
-            <Link href="/#pricing" className="hidden md:inline-flex font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors">
-              {'>'} {t.nav.pricing}
-            </Link>
+
             {user ? (
               <>
                 <Link
                   href="/dashboard"
-                  className="font-mono text-xs bg-green-400 text-zinc-950 px-3 py-1.5 rounded-lg font-medium hover:bg-green-300 transition-colors"
+                  className="hidden md:inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent text-background text-xs font-medium hover:opacity-90 transition-all duration-300 active:scale-[0.98]"
                 >
-                  {'>_'} {t.nav.dashboard}
+                  <span>{t.nav.dashboard}</span>
                 </Link>
                 <button
                   onClick={onOpenLogout}
-                  className="hidden md:inline-flex font-mono text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+                  className="hidden md:inline-flex text-xs text-muted hover:text-foreground transition-colors duration-300"
                 >
-                  {'>'} {t.nav.logout}
+                  {t.nav.logout}
                 </button>
               </>
             ) : (
               <button
                 onClick={onOpenAuth}
-                className="font-mono text-xs bg-green-400 text-zinc-950 px-3 py-1.5 rounded-lg font-medium hover:bg-green-300 transition-colors"
+                className="hidden md:inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent text-background text-xs font-medium hover:opacity-90 transition-all duration-300 active:scale-[0.98]"
               >
-                {'>_'} {t.nav.login}
+                <span>{t.nav.login}</span>
               </button>
             )}
-            {/* Mobile menu toggle */}
+
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="md:hidden text-zinc-400 hover:text-zinc-200 transition-colors"
+              className="md:hidden relative w-8 h-8 flex items-center justify-center text-foreground"
             >
-              {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              <div className="relative w-5 h-5">
+                <span
+                  className={`absolute left-0 top-[2px] w-5 h-[1.5px] bg-current rounded-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                    menuOpen ? 'rotate-45 top-[9px]' : ''
+                  }`}
+                />
+                <span
+                  className={`absolute left-0 top-[9px] w-5 h-[1.5px] bg-current rounded-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                    menuOpen ? 'opacity-0 translate-x-2' : ''
+                  }`}
+                />
+                <span
+                  className={`absolute left-0 top-[16px] w-5 h-[1.5px] bg-current rounded-full transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${
+                    menuOpen ? '-rotate-45 top-[9px]' : ''
+                  }`}
+                />
+              </div>
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Mobile sidebar */}
       {menuOpen && (
-        <div className="fixed inset-0 z-40 md:hidden" onClick={() => setMenuOpen(false)}>
-          <div className="absolute inset-0 bg-black/50" />
+        <div className="fixed inset-0 z-40 md:hidden">
           <div
-            className="absolute top-14 right-0 w-56 bg-zinc-950 border-l border-b border-zinc-800 rounded-bl-2xl p-4 space-y-2"
+            className="absolute inset-0 bg-background/80 backdrop-blur-3xl"
+            onClick={() => setMenuOpen(false)}
+          />
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center gap-8 px-8"
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              onClick={() => { toggleTheme(); setMenuOpen(false) }}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg font-mono text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 transition-colors"
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              {theme === 'dark' ? 'Light mode' : 'Dark mode'}
-            </button>
-            <button
-              onClick={() => { setLocale(locale === 'id' ? 'en' : 'id'); setMenuOpen(false) }}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg font-mono text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 transition-colors"
-            >
-              {locale === 'id' ? 'EN' : 'ID'}
-            </button>
-            <Link
-              href="/#pricing"
-              onClick={() => setMenuOpen(false)}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg font-mono text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 transition-colors"
-            >
-              {'>'} {t.nav.pricing}
-            </Link>
-            {user && (
-              <button
-                onClick={() => { onOpenLogout(); setMenuOpen(false) }}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg font-mono text-xs text-red-400 hover:text-red-300 hover:bg-red-400/5 transition-colors"
+            {[
+              { label: t.nav.pricing, href: '/#features' },
+              { label: 'Pricing', href: '/#pricing' },
+              ...(user
+                ? [{ label: t.nav.dashboard, href: '/dashboard' }]
+                : [{ label: t.nav.login, onClick: () => { onOpenAuth(); setMenuOpen(false) } }]
+              ),
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="animate-stagger"
+                style={{
+                  animation: `stagger-fade 0.6s cubic-bezier(0.32,0.72,0,1) ${i * 0.1}s forwards`,
+                  opacity: 0,
+                  transform: 'translateY(24px)',
+                }}
               >
-                {'>'} {t.nav.logout}
+                {item.href ? (
+                  <Link
+                    href={item.href}
+                    onClick={() => setMenuOpen(false)}
+                    className="text-3xl font-serif text-foreground hover:text-accent transition-colors duration-300"
+                  >
+                    {item.label}
+                  </Link>
+                ) : (
+                  <button
+                    onClick={item.onClick}
+                    className="text-3xl font-serif text-foreground hover:text-accent transition-colors duration-300"
+                  >
+                    {item.label}
+                  </button>
+                )}
+              </div>
+            ))}
+            <div
+              className="flex items-center gap-4 mt-8"
+              style={{
+                animation: `stagger-fade 0.6s cubic-bezier(0.32,0.72,0,1) 0.4s forwards`,
+                opacity: 0,
+                transform: 'translateY(24px)',
+              }}
+            >
+              <button
+                onClick={() => { toggleTheme(); setMenuOpen(false) }}
+                className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted hover:text-foreground transition-colors"
+              >
+                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
               </button>
-            )}
+              <button
+                onClick={() => { setLocale(locale === 'id' ? 'en' : 'id'); setMenuOpen(false) }}
+                className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted hover:text-foreground transition-colors text-xs font-medium"
+              >
+                {locale === 'id' ? 'EN' : 'ID'}
+              </button>
+              {user && (
+                <button
+                  onClick={() => { onOpenLogout(); setMenuOpen(false) }}
+                  className="text-sm text-muted hover:text-foreground transition-colors"
+                >
+                  {t.nav.logout}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

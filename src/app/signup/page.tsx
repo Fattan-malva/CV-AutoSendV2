@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
+import { Spinner } from 'phosphor-react'
 
 export default function SignupPage() {
   const { user, loading } = useAuth()
@@ -19,7 +20,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <p className="font-mono text-xs text-zinc-600 animate-pulse">Redirecting...</p>
+      <Spinner size={24} className="text-accent animate-spin" />
     </div>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Settings, ExternalLink, Upload, FileText } from 'lucide-react'
+import { Gear, ArrowSquareOut, Upload, FileText, CheckCircle, XCircle } from 'phosphor-react'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n-context'
 import Skeleton from '@/components/ui/Skeleton'
@@ -131,116 +131,125 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
     } finally { setSaving(false) }
   }
 
+  const inputClass = "w-full mt-1 bg-surface border border-border rounded-xl px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/40 transition-all duration-300"
+
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-8 h-8 rounded-lg bg-green-400/10 border border-green-400/20 flex items-center justify-center">
-          <Settings className="w-4 h-4 text-green-400" />
+      <div className="flex items-center gap-3 mb-2">
+        <div className="w-9 h-9 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
+          <Gear size={18} className="text-accent" weight="duotone" />
         </div>
         <div>
-          <h2 className="font-mono text-sm text-zinc-300">Settings</h2>
-          <p className="font-mono text-[10px] text-zinc-600 mt-0.5">Configure your SMTP and CV</p>
+          <h2 className="text-sm text-foreground font-medium">Settings</h2>
+          <p className="text-[10px] text-muted mt-0.5">Configure your SMTP and CV</p>
         </div>
       </div>
 
       {(!config.smtpPass || !config.cvPath) && (
-        <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-xl">
-          <p className="font-mono text-xs text-amber-400">{t.signup.missingConfig}</p>
+        <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl">
+          <p className="text-xs text-amber-400">{t.signup.missingConfig}</p>
           <div className="mt-1 space-y-0.5">
-            {!config.smtpPass && <p className="font-mono text-[10px] text-zinc-400">{t.signup.missingAppPass}</p>}
-            {!config.cvPath && <p className="font-mono text-[10px] text-zinc-400">{t.signup.missingCv}</p>}
+            {!config.smtpPass && <p className="text-[10px] text-muted">{t.signup.missingAppPass}</p>}
+            {!config.cvPath && <p className="text-[10px] text-muted">{t.signup.missingCv}</p>}
           </div>
         </div>
       )}
 
-      <div className="border border-zinc-800 rounded-2xl p-6 space-y-5">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="font-mono text-[10px] text-zinc-500">{t.signup.smtpHost}</label>
-            <input value={smtpHost} onChange={(e) => setSmtpHost(e.target.value)}
-              className="w-full mt-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-100 font-mono focus:outline-none focus:ring-2 focus:ring-green-400/50" />
+      <div className="p-1.5 rounded-[2rem] bg-border/30">
+        <div className="rounded-[calc(2rem-0.375rem)] bg-card p-7 space-y-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted">{t.signup.smtpHost}</label>
+              <input value={smtpHost} onChange={(e) => setSmtpHost(e.target.value)} className={inputClass} />
+            </div>
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted">{t.signup.smtpPort}</label>
+              <input value={smtpPort} onChange={(e) => setSmtpPort(e.target.value)} className={inputClass} />
+            </div>
           </div>
-          <div>
-            <label className="font-mono text-[10px] text-zinc-500">{t.signup.smtpPort}</label>
-            <input value={smtpPort} onChange={(e) => setSmtpPort(e.target.value)}
-              className="w-full mt-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-100 font-mono focus:outline-none focus:ring-2 focus:ring-green-400/50" />
-          </div>
-        </div>
 
-        <div>
-          <label className="font-mono text-[10px] text-zinc-500">{t.signup.smtpUser}</label>
-          <input value={smtpUser} onChange={(e) => setSmtpUser(e.target.value)} type="email"
-            className="w-full mt-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-100 font-mono focus:outline-none focus:ring-2 focus:ring-green-400/50" />
-        </div>
-
-        <div>
-          <label className="font-mono text-[10px] text-zinc-500">{t.signup.smtpPass}</label>
-          <div className="relative mt-1">
-            <input value={smtpPass} onChange={(e) => { setSmtpPass(e.target.value); if (e.target.value) setSmtpConfigured(false) }}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-100 font-mono focus:outline-none focus:ring-2 focus:ring-green-400/50 pr-8"
-              type="password" placeholder={smtpConfigured ? '••••••••' : 'xxxx xxxx xxxx xxxx'} />
-            <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer"
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-green-400 transition-colors" title={t.signup.smtpPassGuide}>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-muted">{t.signup.smtpUser}</label>
+            <input value={smtpUser} onChange={(e) => setSmtpUser(e.target.value)} type="email" className={inputClass} />
           </div>
-          <details className="mt-2 group">
-            <summary className="font-mono text-[10px] text-zinc-500 cursor-pointer hover:text-zinc-400 transition-colors">{t.signup.smtpPassGuide}</summary>
-            <div className="mt-2 p-3 bg-zinc-800/50 border border-zinc-700 rounded-lg space-y-1">
-              <p className="font-mono text-[10px] text-zinc-500">{t.signup.smtpPassGuideStep1}</p>
-              <p className="font-mono text-[10px] text-zinc-500">{t.signup.smtpPassGuideStep2}</p>
-              <p className="font-mono text-[10px] text-zinc-500">{t.signup.smtpPassGuideStep3}</p>
-              <p className="font-mono text-[10px] text-zinc-500">{t.signup.smtpPassGuideStep4}</p>
-              <p className="font-mono text-[10px] text-zinc-500">{t.signup.smtpPassGuideStep5}</p>
+
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-muted">{t.signup.smtpPass}</label>
+            <div className="relative mt-1">
+              <input value={smtpPass} onChange={(e) => { setSmtpPass(e.target.value); if (e.target.value) setSmtpConfigured(false) }}
+                className={`${inputClass} pr-10`}
+                type="password" placeholder={smtpConfigured ? '••••••••' : 'xxxx xxxx xxxx xxxx'} />
               <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 font-mono text-[10px] text-green-400 hover:text-green-300 underline underline-offset-2 mt-1">
-                myaccount.google.com/apppasswords
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-accent transition-colors" title={t.signup.smtpPassGuide}>
+                <ArrowSquareOut size={16} />
               </a>
             </div>
-          </details>
-        </div>
+            <details className="mt-2 group">
+              <summary className="text-[10px] text-muted cursor-pointer hover:text-foreground transition-colors">{t.signup.smtpPassGuide}</summary>
+              <div className="mt-2 p-3 bg-subtle border border-border rounded-xl space-y-1">
+                <p className="text-[10px] text-muted">{t.signup.smtpPassGuideStep1}</p>
+                <p className="text-[10px] text-muted">{t.signup.smtpPassGuideStep2}</p>
+                <p className="text-[10px] text-muted">{t.signup.smtpPassGuideStep3}</p>
+                <p className="text-[10px] text-muted">{t.signup.smtpPassGuideStep4}</p>
+                <p className="text-[10px] text-muted">{t.signup.smtpPassGuideStep5}</p>
+                <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[10px] text-accent hover:opacity-80 underline underline-offset-2 mt-1">
+                  myaccount.google.com/apppasswords
+                </a>
+              </div>
+            </details>
+          </div>
 
-        <div>
-          <label className="font-mono text-[10px] text-zinc-500">{t.signup.senderName}</label>
-          <input value={senderName} onChange={(e) => setSenderName(e.target.value)}
-            className="w-full mt-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-100 font-mono focus:outline-none focus:ring-2 focus:ring-green-400/50" />
-        </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-muted">{t.signup.senderName}</label>
+            <input value={senderName} onChange={(e) => setSenderName(e.target.value)} className={inputClass} />
+          </div>
 
-        <div>
-          <label className="font-mono text-[10px] text-zinc-500">{t.signup.uploadCv}</label>
-          <label className="mt-1 flex items-center gap-2 border border-dashed border-zinc-700 rounded-lg px-3 py-3 cursor-pointer hover:border-zinc-500 transition-colors">
-            <Upload className="w-4 h-4 text-zinc-500 shrink-0" />
-            <span className="font-mono text-xs text-zinc-400 truncate">{cvFile ? cvFile.name : cvPreview ? 'Update CV' : 'Upload CV (PDF)'}</span>
-            <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={(e) => setCvFile(e.target.files?.[0] || null)} />
-          </label>
-        </div>
+          <div>
+            <label className="text-[10px] uppercase tracking-wider text-muted">{t.signup.uploadCv}</label>
+            <label className="mt-1 flex items-center gap-3 border border-dashed border-border rounded-xl px-4 py-3.5 cursor-pointer hover:border-accent/50 hover:bg-subtle/40 transition-all duration-300">
+              <Upload size={18} className="text-muted shrink-0" />
+              <span className="text-sm text-muted truncate">{cvFile ? cvFile.name : cvPreview ? 'Update CV' : 'Upload CV (PDF)'}</span>
+              <input ref={fileRef} type="file" accept=".pdf" className="hidden" onChange={(e) => setCvFile(e.target.files?.[0] || null)} />
+            </label>
+          </div>
 
-        {cvPreview && (
-          <button onClick={openCvPreview} disabled={previewLoading}
-            className="flex items-center gap-2 font-mono text-xs text-green-400 hover:text-green-300 disabled:opacity-40 transition-colors">
-            {previewLoading ? (
-              <Skeleton className="w-4 h-4 rounded" />
-            ) : (
-              <FileText className="w-4 h-4" />
-            )}
-            Preview CV
+          {cvPreview && (
+            <button onClick={openCvPreview} disabled={previewLoading}
+              className="flex items-center gap-2 text-xs text-accent hover:opacity-80 disabled:opacity-40 transition-all duration-300"
+            >
+              {previewLoading ? (
+                <Skeleton className="w-4 h-4 rounded" />
+              ) : (
+                <FileText size={16} />
+              )}
+              Preview CV
+            </button>
+          )}
+
+          {smtpPass && (
+            <button onClick={testSmtp} disabled={testing}
+              className="w-full border border-border text-foreground rounded-full px-4 py-3 text-sm font-medium hover:bg-subtle disabled:opacity-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]"
+            >
+              {testing ? 'Testing...' : t.signup.testEmail}
+            </button>
+          )}
+
+          {testMsg && <p className={`text-xs flex items-center gap-1.5 ${testMsg.includes('sent') ? 'text-accent' : 'text-red-400'}`}>
+            {testMsg.includes('sent') ? <CheckCircle size={14} weight="fill" /> : <XCircle size={14} />}
+            {testMsg}
+          </p>}
+          {saveMsg && <p className={`text-xs flex items-center gap-1.5 ${saveMsg === 'Disimpan!' ? 'text-accent' : 'text-red-400'}`}>
+            {saveMsg === 'Disimpan!' ? <CheckCircle size={14} weight="fill" /> : <XCircle size={14} />}
+            {saveMsg}
+          </p>}
+
+          <button onClick={handleSave} disabled={saving}
+            className="w-full bg-accent text-background rounded-full px-4 py-3 text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
+          >
+            {saving ? t.signup.saving : t.signup.save}
           </button>
-        )}
-
-        {smtpPass && (
-          <button onClick={testSmtp} disabled={testing}
-            className="w-full border border-zinc-700 text-zinc-300 rounded-lg px-4 py-2 font-mono text-xs font-medium hover:bg-zinc-800 disabled:opacity-40 transition-colors">
-            {testing ? 'Testing...' : t.signup.testEmail}
-          </button>
-        )}
-
-        {testMsg && <p className={`font-mono text-xs ${testMsg.includes('sent') ? 'text-green-400' : 'text-red-400'}`}>{testMsg}</p>}
-        {saveMsg && <p className={`font-mono text-xs ${saveMsg === 'Disimpan!' ? 'text-green-400' : 'text-red-400'}`}>{saveMsg}</p>}
-
-        <button onClick={handleSave} disabled={saving}
-          className="w-full bg-green-400 text-zinc-950 rounded-lg px-4 py-2.5 font-mono text-sm font-medium hover:bg-green-300 disabled:opacity-40 transition-colors">
-          {saving ? t.signup.saving : t.signup.save}
-        </button>
+        </div>
       </div>
     </div>
   )

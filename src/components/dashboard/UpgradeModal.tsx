@@ -1,10 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Zap } from 'lucide-react'
+import { Lightning, ArrowRight } from 'phosphor-react'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n-context'
-import WindowFrame from '@/components/ui/WindowFrame'
 
 interface UpgradeModalProps {
   open: boolean
@@ -72,65 +71,65 @@ export default function UpgradeModal({ open, onClose }: UpgradeModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm" style={{ backgroundColor: 'var(--overlay)' }} onClick={onClose}>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-2xl" style={{ backgroundColor: 'var(--overlay)' }} onClick={onClose}>
       <div
-        className="w-full max-w-lg mx-4 animate-pulse-glow rounded-2xl"
+        className="w-full max-w-lg mx-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <WindowFrame title="~/upgrade" accent="green" className="p-6 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4 font-mono text-xs text-zinc-500">
-            <span className="text-green-400">~</span>
-            <span>$ ./upgrade --select-plan</span>
-          </div>
-
-          <div className="w-12 h-12 rounded-full bg-green-400/20 border border-green-400/30 flex items-center justify-center mx-auto mb-4">
-            <Zap className="w-6 h-6 text-green-400" />
-          </div>
-
-          <h2 className="text-lg font-bold text-zinc-100">{t.dashboard.upgradeTitle}</h2>
-          <p className="mt-2 text-sm text-zinc-400">{t.dashboard.upgradeDesc}</p>
-
-          {/* Current plan */}
-          <div className="mt-6 p-3 bg-zinc-800/30 rounded-xl border border-zinc-700/50 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-xs text-zinc-400">{t.landing.pricingFree}</span>
-              <span className="font-mono text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">3 a · 3 s</span>
+        <div className="p-1.5 rounded-[2.5rem] bg-border/40">
+          <div className="rounded-[calc(2.5rem-0.375rem)] bg-card p-8 text-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
+            <div className="w-12 h-12 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto mb-4">
+              <Lightning size={22} className="text-accent" weight="fill" />
             </div>
-            <span className="font-mono text-xs text-zinc-500">$0</span>
+
+            <h2 className="text-2xl font-serif text-foreground">{t.dashboard.upgradeTitle}</h2>
+            <p className="mt-2 text-sm text-muted">{t.dashboard.upgradeDesc}</p>
+
+            <div className="mt-6 p-3 bg-subtle rounded-2xl border border-border flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-foreground">{t.landing.pricingFree}</span>
+                <span className="text-[10px] text-muted bg-card px-1.5 py-0.5 rounded border border-border">3 a · 3 s</span>
+              </div>
+              <span className="text-sm text-muted">$0</span>
+            </div>
+
+            <div className="mt-3 space-y-3">
+              {tiers.map((tier) => (
+                <button
+                  key={tier.key}
+                  onClick={() => handleUpgrade(tier.key)}
+                  disabled={loading}
+                  className="group w-full flex items-center justify-between p-4 bg-accent/10 rounded-2xl border border-accent/20 hover:bg-accent/20 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] text-left disabled:opacity-40"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-foreground">
+                      {tL(t.landing, tier.nameKey)}
+                    </span>
+                    <span className="text-[10px] text-muted bg-card px-1.5 py-0.5 rounded border border-border">
+                      {tL(t.landing, tier.descKey)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-foreground">
+                      {tL(t.landing, tier.priceKey)}
+                    </span>
+                    <span className="w-6 h-6 rounded-full bg-background/10 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-300">
+                      <ArrowRight size={12} weight="bold" className="text-accent" />
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {error && (
+              <p className="mt-4 text-xs text-red-400">{error}</p>
+            )}
+
+            <p className="mt-6 text-[10px] text-muted">
+              Powered by LemonSqueezy
+            </p>
           </div>
-
-          {/* Upgrade tiers */}
-          <div className="mt-3 space-y-3">
-            {tiers.map((tier) => (
-              <button
-                key={tier.key}
-                onClick={() => handleUpgrade(tier.key)}
-                disabled={loading}
-                className="w-full flex items-center justify-between p-3 bg-green-400/10 rounded-xl border border-green-400/30 hover:bg-green-400/20 transition-colors text-left disabled:opacity-40"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-sm font-medium text-zinc-300">
-                    {tL(t.landing, tier.nameKey)}
-                  </span>
-                  <span className="font-mono text-[10px] text-zinc-400/60 bg-green-400/10 px-1.5 py-0.5 rounded border border-green-400/20">
-                    {tL(t.landing, tier.descKey)}
-                  </span>
-                </div>
-                <span className="font-mono text-sm font-medium text-zinc-300">
-                  {tL(t.landing, tier.priceKey)}
-                </span>
-              </button>
-            ))}
-          </div>
-
-          {error && (
-            <p className="mt-4 font-mono text-xs text-red-400">{error}</p>
-          )}
-
-          <p className="mt-6 font-mono text-[10px] text-zinc-600">
-            Powered by LemonSqueezy
-          </p>
-        </WindowFrame>
+        </div>
       </div>
     </div>
   )
