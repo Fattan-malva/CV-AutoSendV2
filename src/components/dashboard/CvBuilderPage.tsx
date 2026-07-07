@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth-context'
 import Skeleton from '@/components/ui/Skeleton'
 import CvEditor from './CvEditor'
 import CvPreview from './CvPreview'
-import { loadCvData, saveCvData, defaultCvData, templateLabels } from '@/services/cv.service'
+import { loadCvData, saveCvData, defaultCvData, templateLabels, cvHTML } from '@/services/cv.service'
 import type { CvData, CvTemplateId } from '@/types'
 
 export default function CvBuilderPage() {
@@ -159,24 +159,6 @@ export default function CvBuilderPage() {
       document.body.removeChild(printDiv)
     }, 100)
   }, [cv, language])
-
-  function cvHTML(cv: CvData, lang: 'id' | 'en') {
-    const h = (s: string) => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
-    const label = lang === 'en' ? labelsEN : labelsID
-    return `
-      <h1>${h(cv.personalInfo.fullName)}</h1>
-      <div class="contact">${[cv.personalInfo.email, cv.personalInfo.phone, cv.personalInfo.address, cv.personalInfo.linkedin, cv.personalInfo.portfolio].filter(Boolean).map(s => `<span>${h(s)}</span>`).join('')}</div>
-      ${cv.summary ? `<div class="section"><h2>${label.summary}</h2><div class="summary">${h(cv.summary)}</div></div>` : ''}
-      ${cv.experience.length ? `<div class="section"><h2>${label.experience}</h2>${cv.experience.map(e => `<div style="margin-bottom:6px"><div class="exp-header"><span>${h(e.position)}</span><span style="font-weight:400;font-size:10px;color:#6b7280">${e.startDate} – ${e.current ? label.present : e.endDate}</span></div><div class="exp-company">${h(e.company)}</div>${e.bulletPoints.filter(b => b.trim()).length ? `<ul>${e.bulletPoints.filter(b => b.trim()).map(b => `<li>${h(b)}</li>`).join('')}</ul>` : ''}</div>`).join('')}</div>` : ''}
-      ${cv.education.length ? `<div class="section"><h2>${label.education}</h2>${cv.education.map(e => `<div style="margin-bottom:3px;display:flex;justify-content:space-between"><span><strong>${h(e.institution)}</strong> — ${h(e.degree)}${e.field ? ' in ' + h(e.field) : ''}${e.gpa ? ' (GPA: ' + e.gpa + ')' : ''}</span><span style="font-size:10px;color:#6b7280">${e.startDate} – ${e.endDate}</span></div>`).join('')}</div>` : ''}
-      ${cv.skills.filter(s => s.items.filter(i => i).length).length ? `<div class="section"><h2>${label.skills}</h2>${cv.skills.filter(s => s.items.filter(i => i).length).map(s => `<div class="skill-line">${s.category ? `<strong>${h(s.category)}:</strong> ` : ''}${s.items.filter(i => i).map(i => h(i)).join(', ')}</div>`).join('')}</div>` : ''}
-      ${cv.certifications.length ? `<div class="section"><h2>${label.certifications}</h2>${cv.certifications.map(c => `<div class="cert-line"><strong>${h(c.name)}</strong>${c.issuer ? ' — ' + h(c.issuer) : ''}${c.date ? ' (' + c.date + ')' : ''}</div>`).join('')}</div>` : ''}
-      ${cv.languages.length ? `<div class="section"><h2>${label.languages}</h2><div class="lang-line">${cv.languages.map(l => `${h(l.language)} (${h(l.proficiency)})`).join(', ')}</div></div>` : ''}
-    `
-  }
-
-  const labelsEN = { summary: 'Professional Summary', experience: 'Experience', present: 'Present', education: 'Education', skills: 'Skills', certifications: 'Certifications', languages: 'Languages' }
-  const labelsID = { summary: 'Ringkasan Profesional', experience: 'Pengalaman', present: 'Sekarang', education: 'Pendidikan', skills: 'Keahlian', certifications: 'Sertifikasi', languages: 'Bahasa' }
 
   const getAIContext = useCallback((section: string) => {
     switch (section) {

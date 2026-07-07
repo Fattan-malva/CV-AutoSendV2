@@ -1,10 +1,11 @@
 'use client'
 
 import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from 'react'
-import { doc, updateDoc, increment } from 'firebase/firestore'
+import { doc, getDoc, updateDoc, increment } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { decrypt } from '@/lib/crypto'
-import type { AnalysisResult, UserConfig } from '@/types'
+import { cvHTML } from '@/services/cv.service'
+import type { AnalysisResult, UserConfig, CvData } from '@/types'
 import type { User } from 'firebase/auth'
 
 export interface BulkItem {
@@ -83,6 +84,65 @@ export function ProcessingProvider({
   configRef.current = config
   const userRef = useRef(user)
   userRef.current = user
+  const cvPdfUrlRef = useRef<string | null>(null)
+
+  const getCvDataPdfUrl = useCallback(async (): Promise<string | null> => {
+    if (cvPdfUrlRef.current) return cvPdfUrlRef.current
+    const u = userRef.current
+    if (!u || !db) return null
+    const snap = await getDoc(doc(db, 'users', u.uid))
+    if (!snap.exists()) return null
+    const data = snap.data().cvData as CvData | undefined
+    if (!data || !data.personalInfo?.fullName) return null
+
+    const iframe = document.createElement('iframe')
+    iframe.style.position = 'fixed'
+    iframe.style.left = '-9999px'
+    iframe.style.top = '0'
+    iframe.style.width = '595px'
+    iframe.style.height = '842px'
+    iframe.style.border = 'none'
+    iframe.style.opacity = '0'
+    document.body.appendChild(iframe)
+    const doc2 = iframe.contentDocument!
+    doc2.open()
+    doc2.write(`<!DOCTYPE html><html><head><style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family:'Inter','Segoe UI',sans-serif; color:#111827; background:#fff; padding:40px; font-size:11px; line-height:1.5; }
+      h1 { font-size:22px; font-weight:700; text-transform:uppercase; letter-spacing:-0.5px; margin-bottom:2px; }
+      h2 { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin:12px 0 4px; padding-bottom:2px; border-bottom:1px solid #d1d5db; }
+      .contact { font-size:10px; color:#6b7280; margin-bottom:16px; } .contact span { margin-right:12px; }
+      .section { margin-bottom:10px; }
+      .exp-header { display:flex; justify-content:space-between; font-weight:600; font-size:12px; }
+      .exp-company { font-size:10px; color:#6b7280; }
+      ul { list-style:disc; padding-left:16px; margin-top:2px; }
+      li { font-size:11px; color:#374151; margin-bottom:1px; }
+      .summary { font-size:11px; color:#374151; line-height:1.6; margin-bottom:10px; }
+      .skill-line { font-size:11px; margin-bottom:1px; }
+      .cert-line { font-size:11px; margin-bottom:1px; }
+      .lang-line { font-size:11px; }
+    </style></head><body>${cvHTML(data, data.language || 'id')}</body></html>`)
+    doc2.close()
+    await new Promise(r => setTimeout(r, 300))
+
+    const html2canvas = (await import('html2canvas')).default
+    const { jsPDF } = await import('jspdf')
+    const canvas = await html2canvas(doc2.body, { scale: 2, backgroundColor: '#ffffff', logging: false })
+    document.body.removeChild(iframe)
+
+    const tc = document.createElement('canvas')
+    tc.width = canvas.width; tc.height = canvas.height
+    const ctx = tc.getContext('2d', { colorSpace: 'srgb' })!
+    ctx.drawImage(canvas, 0, 0)
+    const jpegData = tc.toDataURL('image/jpeg', 0.92)
+
+    const pdf = new jsPDF('p', 'mm', 'a4')
+    const pw = pdf.internal.pageSize.getWidth()
+    const ph = (canvas.height * pw) / canvas.width
+    pdf.addImage(jpegData, 'JPEG', 0, 0, pw, ph)
+    cvPdfUrlRef.current = pdf.output('datauristring')
+    return cvPdfUrlRef.current
+  }, [])
 
   const updateItem = useCallback((id: string, patch: Partial<BulkItem>) => {
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)))
@@ -157,8 +217,10 @@ export function ProcessingProvider({
       updateItem(item.id, { status: 'error', error: 'App password not configured. Please set it in profile settings.', sending: false })
       return
     }
-    if (!c.cvPath) {
-      updateItem(item.id, { status: 'error', error: 'CV not uploaded. Please upload it in profile settings.', sending: false })
+
+    const pdfUrl = await getCvDataPdfUrl()
+    if (!pdfUrl && !c.cvPath) {
+      updateItem(item.id, { status: 'error', error: 'CV not found. Please upload it in profile settings or create one in CV Builder.', sending: false })
       return
     }
     if (!item.editable.email) {
@@ -175,7 +237,7 @@ export function ProcessingProvider({
         body: JSON.stringify({
           subjek: item.editable.subjek, intro: item.editable.intro,
           alasan: item.editable.alasan, penutup: item.editable.penutup,
-          email: item.editable.email, fileUrl: c.cvPath, fileName: 'CV.pdf',
+          email: item.editable.email, fileUrl: pdfUrl || c.cvPath, fileName: 'CV.pdf',
         }),
       })
 
