@@ -42,7 +42,7 @@ export async function analyzeBrochure(imageData: string, mimeType: string, sende
   const resp = await ai.models.generateContent({
     model: MODEL,
     contents,
-    config: { responseMimeType: 'application/json' },
+    config: {},
   })
 
   const text = resp.text
@@ -50,7 +50,23 @@ export async function analyzeBrochure(imageData: string, mimeType: string, sende
     throw new Error('AI returned empty response')
   }
 
-  return JSON.parse(text) as AnalysisResult
+  let jsonText = text.trim()
+
+  const jsonBlock = jsonText.match(/```(?:json)?\s*([\s\S]*?)```/)
+  if (jsonBlock) {
+    jsonText = jsonBlock[1].trim()
+  }
+
+  const braceMatch = jsonText.match(/\{[\s\S]*\}/)
+  if (braceMatch) {
+    jsonText = braceMatch[0]
+  }
+
+  try {
+    return JSON.parse(jsonText) as AnalysisResult
+  } catch {
+    throw new Error(`AI returned invalid JSON. Response: ${text.slice(0, 500)}`)
+  }
 }
 
 export function encryptResult(result: AnalysisResult, uid: string | null): AnalysisResult {

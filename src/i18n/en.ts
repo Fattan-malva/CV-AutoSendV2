@@ -156,7 +156,7 @@ const en = {
     placeholderIntro: "Who you are and why you're reaching out...",
     placeholderAlasan: "Why you're a good fit...",
     placeholderPenutup: 'Call to action and signature...',
-    sendEmail: 'send email \u2192',
+    sendEmail: 'send email',
     analysisFailed: 'Analysis failed',
     retryAnalysis: 'retry analysis',
     configError: 'Configuration not found. Please complete registration.',

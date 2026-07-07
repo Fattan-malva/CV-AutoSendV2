@@ -156,7 +156,7 @@ const id = {
     placeholderIntro: 'Siapa Anda dan mengapa Anda menghubungi...',
     placeholderAlasan: 'Mengapa Anda cocok...',
     placeholderPenutup: 'Ajakan bertindak dan tanda tangan...',
-    sendEmail: 'kirim email \u2192',
+    sendEmail: 'kirim email',
     analysisFailed: 'Analisis gagal',
     retryAnalysis: 'analisis ulang',
     configError: 'Konfigurasi tidak ditemukan. Silakan lengkapi pendaftaran.',
