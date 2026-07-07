@@ -16,6 +16,22 @@ const SECTION_PROMPTS: Record<string, (lang: string) => string> = {
     : `Berdasarkan pengalaman kerja yang diberikan, sarankan 8-12 skill teknis dan soft skill yang relevan untuk CV. Kelompokkan berdasarkan kategori. Output HANYA sebagai: "Kategori: skill1, skill2, skill3" satu kategori per baris. Tanpa JSON.`,
 }
 
+function buildTranslatePrompt(targetLang: string) {
+  const instruction = targetLang === 'en'
+    ? `Translate the following CV data from Indonesian to English. Keep all JSON structure exactly the same. Translate ALL text fields (summary, position, company, bulletPoints, description, institution, degree, field, category, items, name, issuer, language fields). Preserve dates, numbers, and proper names. Output ONLY valid JSON, no explanation.`
+    : `Terjemahkan data CV berikut dari Inggris ke Indonesia. Pertahankan struktur JSON persis sama. Terjemahkan SEMUA field teks (summary, position, company, bulletPoints, description, institution, degree, field, category, items, name, issuer, language fields). Jangan ubah tanggal, angka, dan nama orang/perusahaan. Output HANYA JSON valid, tanpa penjelasan.`
+  return instruction
+}
+
+function extractJson(text: string): string {
+  let cleaned = text.trim()
+  const jsonBlock = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/)
+  if (jsonBlock) cleaned = jsonBlock[1].trim()
+  const braceMatch = cleaned.match(/\{[\s\S]*\}/)
+  if (braceMatch) cleaned = braceMatch[0]
+  return cleaned
+}
+
 async function callGemma(body: object, retries = 3): Promise<Response> {
   for (let attempt = 0; attempt < retries; attempt++) {
     const res = await fetch(API_URL, {
@@ -41,6 +57,31 @@ export async function POST(req: NextRequest) {
 
     if (!section || !language) {
       return NextResponse.json({ error: 'section and language required' }, { status: 400 })
+    }
+
+    if (section === 'translate-all') {
+      const systemPrompt = `You are a professional CV translator. Translate CV content accurately while maintaining ATS-friendly formatting.`
+      const instruction = buildTranslatePrompt(language)
+      const userContext = context ? `\n\nCV data to translate:\n${context}` : ''
+
+      const body = {
+        contents: [
+          { role: 'user', parts: [{ text: systemPrompt }] },
+          { role: 'user', parts: [{ text: `${instruction}${userContext}` }] },
+        ],
+      }
+
+      const res = await callGemma(body)
+      const data = await res.json()
+      const part = data?.candidates?.[0]?.content?.parts?.find((p: { thought?: boolean }) => !p.thought)
+      const text = part?.text || data?.candidates?.[0]?.content?.parts?.[0]?.text
+
+      if (!text) throw new Error('AI returned empty response')
+
+      const jsonStr = extractJson(text)
+      const translated = JSON.parse(jsonStr)
+
+      return NextResponse.json({ translated })
     }
 
     const promptBuilder = SECTION_PROMPTS[section]

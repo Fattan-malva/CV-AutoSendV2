@@ -16,6 +16,7 @@ export default function CvBuilderPage() {
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState('')
   const [language, setLanguage] = useState<'id' | 'en'>('id')
+  const [translating, setTranslating] = useState(false)
   const previewRef = useRef<HTMLDivElement>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
@@ -33,9 +34,70 @@ export default function CvBuilderPage() {
     load()
   }, [user])
 
-  useEffect(() => {
-    setCv((prev) => ({ ...prev, language }))
-  }, [language])
+  const translatingRef = useRef(false)
+  const mountedRef = useRef(true)
+  useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false } }, [])
+
+  const fetchWithRetry = useCallback(async (url: string, options: RequestInit, retries = 3) => {
+    for (let attempt = 0; attempt < retries; attempt++) {
+      const res = await fetch(url, options)
+      if (res.ok) return res
+      if (res.status >= 500 && attempt < retries - 1) {
+        await new Promise(r => setTimeout(r, 2000 * Math.pow(2, attempt)))
+        continue
+      }
+      throw new Error((await res.json()).error || `HTTP ${res.status}`)
+    }
+    throw new Error('Service unavailable')
+  }, [])
+
+  const handleLanguageChange = useCallback(async (newLang: 'id' | 'en') => {
+    if (newLang === language || translatingRef.current || !user) return
+    translatingRef.current = true
+    setTranslating(true)
+
+    const currentCv = cv
+    const hasContent = currentCv.summary || currentCv.experience.length || currentCv.education.length || currentCv.skills.some(s => s.items.filter(i => i).length) || currentCv.certifications.length || currentCv.languages.length
+
+    if (!hasContent) {
+      if (mountedRef.current) {
+        setLanguage(newLang)
+        setCv((prev) => ({ ...prev, language: newLang }))
+      }
+      translatingRef.current = false
+      if (mountedRef.current) setTranslating(false)
+      return
+    }
+
+    try {
+      const token = await user.getIdToken()
+      const payload = JSON.stringify(currentCv)
+
+      const res = await fetchWithRetry('/api/cv-assist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ section: 'translate-all', language: newLang, context: payload }),
+      })
+
+      const data = await res.json()
+      const translated = { ...currentCv, ...data.translated, language: newLang }
+
+      await saveCvData(user.uid, translated)
+
+      if (mountedRef.current) {
+        setCv(translated)
+        setLanguage(newLang)
+      }
+    } catch {
+      if (mountedRef.current) {
+        setLanguage(language)
+        setCv(currentCv)
+      }
+    } finally {
+      translatingRef.current = false
+      if (mountedRef.current) setTranslating(false)
+    }
+  }, [cv, language, user, fetchWithRetry])
 
   const handleSave = useCallback(async () => {
     if (!user) return
@@ -178,14 +240,20 @@ export default function CvBuilderPage() {
         </div>
 
         <div className="flex gap-1 p-0.5 bg-border/30 rounded-xl">
-          <button onClick={() => setLanguage('id')}
-            className={`px-3 py-1.5 text-[11px] font-medium rounded-lg transition-all duration-300 flex items-center gap-1 ${language === 'id' ? 'bg-accent text-background' : 'text-muted hover:text-foreground'}`}>
+          <button onClick={() => handleLanguageChange('id')} disabled={translating}
+            className={`px-3 py-1.5 text-[11px] font-medium rounded-lg transition-all duration-300 flex items-center gap-1 ${language === 'id' ? 'bg-accent text-background' : 'text-muted hover:text-foreground'} disabled:opacity-50`}>
             <Translate size={12} /> ID
           </button>
-          <button onClick={() => setLanguage('en')}
-            className={`px-3 py-1.5 text-[11px] font-medium rounded-lg transition-all duration-300 flex items-center gap-1 ${language === 'en' ? 'bg-accent text-background' : 'text-muted hover:text-foreground'}`}>
+          <button onClick={() => handleLanguageChange('en')} disabled={translating}
+            className={`px-3 py-1.5 text-[11px] font-medium rounded-lg transition-all duration-300 flex items-center gap-1 ${language === 'en' ? 'bg-accent text-background' : 'text-muted hover:text-foreground'} disabled:opacity-50`}>
             <Translate size={12} /> EN
           </button>
+          {translating && (
+            <div className="flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-3 py-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+              <span className="text-[10px] text-accent font-medium">Translating CV...</span>
+            </div>
+          )}
         </div>
 
         <div className="flex-1" />
