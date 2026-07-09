@@ -89,7 +89,7 @@ export default function Hero({ onOpenAuth }: HeroProps) {
           <div className="hero-eyebrow flex items-center gap-2 px-3 py-1.5 mb-8 rounded-full bg-surface border border-border backdrop-blur-md">
             <Sparkle size={12} weight="fill" className="text-accent" />
             <span className="text-[10px] text-muted uppercase tracking-[0.2em] font-medium mt-[1px]">
-              Autonomous Submissions
+              AI CV Builder &amp; Auto-Send
             </span>
           </div>
 
@@ -232,10 +232,10 @@ export default function Hero({ onOpenAuth }: HeroProps) {
                       </div>
                       <div>
                         <div className="text-white text-xs font-bold tracking-widest uppercase mb-1">
-                          AI Engine Active
+                          CV Builder Active
                         </div>
                         <div className="text-accent text-[10px] font-mono tracking-wider opacity-80">
-                          ⚡ Extracting skills...
+                          ⚡ Generating ATS-friendly layout...
                         </div>
                       </div>
                     </div>

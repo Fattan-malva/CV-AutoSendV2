@@ -4,12 +4,12 @@ import { useRef, useState, useEffect, useMemo } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { Upload, Brain, PaperPlaneTilt, Folder, Lock, Lightning, Sparkle } from 'phosphor-react'
+import { FileText, Upload, Brain, PaperPlaneTilt, Sparkle, Download } from 'phosphor-react'
 import { useI18n } from '@/lib/i18n-context'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
 
-const iconMap = [Upload, Brain, PaperPlaneTilt, Folder, Lock, Lightning]
+const iconMap = [FileText, Upload, Brain, PaperPlaneTilt, Sparkle, Download]
 
 function useTypewriter(phrases: string[], typeSpeed = 45, deleteSpeed = 22, pause = 1500) {
   const [charIndex, setCharIndex] = useState(0)
@@ -91,12 +91,10 @@ export default function Features() {
         <div className="grid grid-cols-1 md:grid-cols-12 auto-rows-[minmax(0,1fr)] gap-4 md:gap-6 grid-flow-dense">
           {t.landing.features.map((f, i) => {
             const Icon = iconMap[i % iconMap.length]
-            const spans =
-              i === 0
-                ? 'md:col-span-7 md:row-span-2'
-                : i === 1
-                ? 'md:col-span-5 md:row-span-1'
-                : 'md:col-span-5 md:row-span-1'
+            let spans = 'md:col-span-4 md:row-span-1'
+            if (i === 0) spans = 'md:col-span-7 md:row-span-2'
+            else if (i === 1) spans = 'md:col-span-5 md:row-span-1'
+            else if (i === 2) spans = 'md:col-span-5 md:row-span-1'
 
             return (
               <div key={i} className={`feat-card p-[1px] rounded-[2rem] bg-gradient-to-b from-border to-transparent ${spans}`}>

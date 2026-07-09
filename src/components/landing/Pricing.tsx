@@ -20,7 +20,7 @@ const tiers = [
     descKey: 'pricingFreeDesc',
     price: '$0',
     featured: false,
-    features: ['3 analisis', '3 pengiriman'],
+    features: ['3 analisis', '3 pengiriman', 'CV Builder 1 template'],
   },
   {
     key: 'basic',
@@ -28,7 +28,7 @@ const tiers = [
     descKey: 'pricingBasicDesc',
     priceKey: 'pricingBasicPrice',
     featured: false,
-    features: ['20 analisis', '20 pengiriman'],
+    features: ['20 analisis', '20 pengiriman', 'CV Builder 3 template'],
   },
   {
     key: 'starter',
@@ -36,7 +36,7 @@ const tiers = [
     descKey: 'pricingStarterDesc',
     priceKey: 'pricingStarterPrice',
     featured: false,
-    features: ['80 analisis', '80 pengiriman', 'Prioritas'],
+    features: ['80 analisis', '80 pengiriman', 'CV Builder semua template', 'AI Assist'],
   },
   {
     key: 'pro',
@@ -44,7 +44,7 @@ const tiers = [
     descKey: 'pricingProDesc',
     priceKey: 'pricingProPrice',
     featured: true,
-    features: ['Unlimited', 'Semua fitur'],
+    features: ['Unlimited', 'CV Builder + AI Assist', 'Semua template', 'Export PDF'],
   },
 ] as const
 

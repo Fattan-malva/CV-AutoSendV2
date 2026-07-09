@@ -1,9 +1,9 @@
 'use client'
 
-import { Lightning, Brain, ShieldCheck, PaperPlaneTilt, Image, Sparkle } from 'phosphor-react'
+import { FileText, Lightning, Brain, ShieldCheck, PaperPlaneTilt, Image, Sparkle, CheckCircle, Gear } from 'phosphor-react'
 import { useI18n } from '@/lib/i18n-context'
 
-const iconMap = [Lightning, Brain, ShieldCheck, PaperPlaneTilt, Image, Sparkle]
+const iconMap = [FileText, Lightning, Brain, ShieldCheck, PaperPlaneTilt, Image, Sparkle, CheckCircle, Gear]
 
 export default function Marquee() {
   const { t } = useI18n()
