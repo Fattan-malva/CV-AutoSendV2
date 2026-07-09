@@ -53,6 +53,12 @@ const id = {
     pricingDesc: 'Mulai gratis tanpa kartu. Upgrade kapan saja.',
     pricingPopular: 'Paling Populer',
     pricingCta: 'Langganan Sekarang',
+    pricingFeatures: {
+      free: ['3 analisis', '3 pengiriman', 'CV Builder 1 template'],
+      basic: ['20 analisis', '20 pengiriman', 'CV Builder 3 template'],
+      starter: ['80 analisis', '80 pengiriman', 'CV Builder semua template', 'AI Assist'],
+      pro: ['Unlimited', 'CV Builder + AI Assist', 'Semua template', 'Export PDF'],
+    },
     footer: 'ceefy. Dibuat dengan AI.',
   },
   demo: {

@@ -27,5 +27,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'weekly',
       priority: 0.4,
     },
+    {
+      url: `${base}/dashboard/cv-builder`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.7,
+    },
   ]
 }

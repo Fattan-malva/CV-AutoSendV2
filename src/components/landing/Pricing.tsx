@@ -20,7 +20,6 @@ const tiers = [
     descKey: 'pricingFreeDesc',
     price: '$0',
     featured: false,
-    features: ['3 analisis', '3 pengiriman', 'CV Builder 1 template'],
   },
   {
     key: 'basic',
@@ -28,7 +27,6 @@ const tiers = [
     descKey: 'pricingBasicDesc',
     priceKey: 'pricingBasicPrice',
     featured: false,
-    features: ['20 analisis', '20 pengiriman', 'CV Builder 3 template'],
   },
   {
     key: 'starter',
@@ -36,7 +34,6 @@ const tiers = [
     descKey: 'pricingStarterDesc',
     priceKey: 'pricingStarterPrice',
     featured: false,
-    features: ['80 analisis', '80 pengiriman', 'CV Builder semua template', 'AI Assist'],
   },
   {
     key: 'pro',
@@ -44,7 +41,6 @@ const tiers = [
     descKey: 'pricingProDesc',
     priceKey: 'pricingProPrice',
     featured: true,
-    features: ['Unlimited', 'CV Builder + AI Assist', 'Semua template', 'Export PDF'],
   },
 ] as const
 
@@ -128,7 +124,7 @@ export default function Pricing({ onOpenAuth }: PricingProps) {
                   </p>
 
                   <div className="flex-1 space-y-3 mb-8">
-                    {tier.features.map((feat, fi) => (
+                    {(t.landing.pricingFeatures as Record<string, string[]>)[tier.key].map((feat, fi) => (
                       <div key={fi} className="flex items-center gap-2.5">
                         <Check size={15} className="text-accent shrink-0" weight="bold" />
                         <span className="text-sm text-muted">{feat}</span>

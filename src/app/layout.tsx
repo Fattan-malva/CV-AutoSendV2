@@ -17,27 +17,27 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL('https://ceefy.mallvaa.xyz'),
   title: {
-    default: 'Ceefy - Kirim CV Otomatis dengan AI ke Setiap Lowongan Kerja',
-    template: '%s | ceefy',
+    default: 'Ceefy - Free AI CV Builder & Auto Job Application Sender',
+    template: '%s | Ceefy',
   },
-  description: 'Kirim CV otomatis dengan AI ke setiap lowongan kerja. Upload brosur, AI analisis otomatis, kirim email lamaran dalam 1 klik. Solusi job seeker cerdas untuk aplikasi kerja cepat dan personal.',
-  keywords: ['CV', 'kirim CV otomatis', 'lamaran kerja', 'job application', 'AI recruitment', 'job seeker', 'cari kerja', 'lowongan', 'aplikasi lowongan kerja', 'otomatis kirim email', 'ceefy'],
+  description: 'Build ATS-friendly CVs with AI and auto-send applications to every job opening. Free AI CV builder creates professional resumes, analyzes brochures, and sends emails in one click.',
+  keywords: ['CV builder', 'AI CV builder', 'free resume builder', 'ATS-friendly CV', 'auto job application sender', 'apply to jobs online', 'job search tools', 'job application automation', 'AI resume writer', 'career tools', 'find jobs online', 'ceefy'],
   icons: {
     icon: '/favicon.png',
     apple: '/favicon.png',
   },
   openGraph: {
-    title: 'ceefy - Kirim CV Otomatis dengan AI',
-    description: 'Upload brosur, AI analisis otomatis, kirim CV + email lamaran dalam 1 klik. Dibuat untuk job seeker Indonesia.',
-    siteName: 'ceefy',
-    locale: 'id_ID',
+    title: 'Ceefy - Free AI CV Builder & Auto Job Application Sender',
+    description: 'Build ATS-friendly CVs with AI and auto-send applications to every job. Free AI CV builder, brochure analyzer, and one-click email sender.',
+    siteName: 'Ceefy',
+    locale: 'en_US',
     type: 'website',
     url: 'https://ceefy.mallvaa.xyz',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ceefy - Kirim CV Otomatis dengan AI',
-    description: 'Upload brosur, AI analisis, kirim CV + email lamaran dalam 1 klik. Solusi cerdas job seeker.',
+    title: 'Ceefy - Free AI CV Builder & Auto Job Application Sender',
+    description: 'Build ATS-friendly CVs with AI and auto-send applications to every job.',
   },
   robots: 'index, follow',
   alternates: {
@@ -56,7 +56,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={`${outfit.variable} ${plusJakartaSans.variable} antialiased`} suppressHydrationWarning>
+    <html lang="en" className={`${outfit.variable} ${plusJakartaSans.variable} antialiased`} suppressHydrationWarning>
       <head>
         <meta name="google-site-verification" content="xgzeigl6YoKgRyfWu9ZPM4xn0OY4ApfTzcfb7FBKIwY" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{
@@ -64,20 +64,34 @@ export default function RootLayout({
             {
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
-              "name": "ceefy",
-              "applicationCategory": "JobApplication",
+              "name": "Ceefy",
+              "applicationCategory": "WebApplication",
               "operatingSystem": "Web",
               "url": "https://ceefy.mallvaa.xyz/",
-              "description": "Kirim CV otomatis dengan AI ke setiap lowongan kerja. Upload brosur, AI analisis, kirim email lamaran dalam 1 klik.",
-              "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+              "description": "Build ATS-friendly CVs with AI and auto-send job applications. Free AI CV builder with brochure analysis and one-click email sending.",
+              "applicationSuite": "Ceefy",
+              "screenshot": "https://ceefy.mallvaa.xyz/og-image.png",
+              "featureList": [
+                "AI CV Builder with ATS-friendly templates",
+                "AI-powered job brochure analysis",
+                "One-click auto-send applications",
+                "Multi-language CV export (PDF)"
+              ],
+              "offers": {
+                "@type": "AggregateOffer",
+                "priceCurrency": "USD",
+                "lowPrice": "0",
+                "highPrice": "20",
+                "offerCount": "4"
+              }
             },
             {
               "@context": "https://schema.org",
               "@type": "WebSite",
-              "name": "ceefy",
+              "name": "Ceefy",
               "url": "https://ceefy.mallvaa.xyz/",
-              "description": "Aplikasi AI untuk membantu job seeker mengirim CV otomatis",
-              "inLanguage": ["id", "en"]
+              "description": "Free AI CV Builder and auto job application tool. Build professional resumes, analyze brochures, and send applications globally.",
+              "inLanguage": ["en", "id"]
             }
           ])
         }} />

@@ -53,6 +53,12 @@ const en = {
     pricingDesc: 'Start free, no card required. Upgrade anytime.',
     pricingPopular: 'Most Popular',
     pricingCta: 'Subscribe Now',
+    pricingFeatures: {
+      free: ['3 analyzes', '3 sends', 'CV Builder 1 template'],
+      basic: ['20 analyzes', '20 sends', 'CV Builder 3 templates'],
+      starter: ['80 analyzes', '80 sends', 'CV Builder all templates', 'AI Assist'],
+      pro: ['Unlimited', 'CV Builder + AI Assist', 'All templates', 'Export PDF'],
+    },
     footer: 'ceefy. Made with Malva-Assistant.',
   },
   demo: {
