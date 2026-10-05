@@ -1,4 +1,4 @@
-import { getDbAdmin } from '@/lib/firebase-admin'
+import { upsertUserData } from '@/lib/supabase-admin'
 import { encryptSmtp } from '@/lib/smtp-encrypt'
 
 export async function saveSettings(uid: string, body: {
@@ -10,9 +10,6 @@ export async function saveSettings(uid: string, body: {
   cvPath?: string
   analyzeLanguage?: 'id' | 'en'
 }) {
-  const db = getDbAdmin()
-  if (!db) throw new Error('Server config error')
-
   if (!body.smtpHost || !body.smtpUser) {
     throw new Error('SMTP host and user are required')
   }
@@ -36,5 +33,5 @@ export async function saveSettings(uid: string, body: {
     updateData.analyzeLanguage = body.analyzeLanguage
   }
 
-  await db.collection('users').doc(uid).set(updateData, { merge: true })
+  await upsertUserData(uid, updateData)
 }

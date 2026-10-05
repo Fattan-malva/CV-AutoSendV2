@@ -1,7 +1,17 @@
 import nodemailer from 'nodemailer'
-import { getDbAdmin } from '@/lib/firebase-admin'
+import { getSupabaseAdmin, getUserData } from '@/lib/supabase-admin'
 import { decryptSmtp } from '@/lib/smtp-encrypt'
 import { checkUsage, incrementUsage } from '@/lib/rate-limit'
+
+interface StoredUser {
+  email: string
+  smtpHost: string
+  smtpPort: number
+  smtpUser: string
+  smtpPass: string
+  senderName: string
+  cvPath?: string
+}
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -20,11 +30,10 @@ export async function sendEmail(uid: string, mailData: {
   fileName?: string
   targetEmail?: string
 }) {
-  const db = getDbAdmin()
+  const db = getSupabaseAdmin()
   if (!db) throw new Error('Server config error')
-
-  const userDoc = await db.collection('users').doc(uid).get()
-  if (!userDoc.exists) throw new Error('User not found')
+  const userData = await getUserData(uid) as StoredUser | null
+  if (!userData) throw new Error('User not found')
 
   const usage = await checkUsage(uid)
   if (!usage.allowed) {
@@ -33,7 +42,6 @@ export async function sendEmail(uid: string, mailData: {
     throw err
   }
 
-  const userData = userDoc.data()!
   const to = mailData.targetEmail || userData.email
   const smtpPass = decryptSmtp(userData.smtpPass)
 
@@ -55,11 +63,11 @@ export async function sendEmail(uid: string, mailData: {
     `,
   }
 
-  // Always use the latest CV stored in Firestore (saved via Settings/upload).
-  const cvPathFromFirestore: string | undefined = userData.cvPath
-  if (cvPathFromFirestore) {
-    const cvRes = await fetch(cvPathFromFirestore)
-    if (!cvRes.ok) throw new Error(`Failed to fetch cvPath: ${cvPathFromFirestore}`)
+  // Always use the latest CV stored in Supabase (saved via Settings/upload).
+  const cvPathFromSupabase: string | undefined = userData.cvPath
+  if (cvPathFromSupabase) {
+    const cvRes = await fetch(cvPathFromSupabase)
+    if (!cvRes.ok) throw new Error(`Failed to fetch cvPath: ${cvPathFromSupabase}`)
     const cvBuffer = await cvRes.arrayBuffer()
     mailOptions.attachments = [
       {
@@ -70,22 +78,22 @@ export async function sendEmail(uid: string, mailData: {
   }
 
   // Log: which cvPath is used for this email
-  const cvPathToLog = cvPathFromFirestore || ''
+  const cvPathToLog = cvPathFromSupabase || ''
 
   await transporter.sendMail(mailOptions)
   await incrementUsage(uid, 'send')
 
-  // Log to applications subcollection
+  // Log to the Supabase applications table.
   try {
-    await db.collection('users').doc(uid).collection('applications').add({
+    await db.from('applications').insert({
       uid,
       perusahaan: mailData.subjek?.match(/di\s+(.+)/)?.[1] || '',
       posisi: mailData.subjek || '',
       email: to,
       subjek: mailData.subjek || '',
       status: 'sent',
-      sentAt: new Date().toISOString(),
-      cvPath: cvPathToLog,
+      sent_at: new Date().toISOString(),
+      cv_path: cvPathToLog,
     })
   } catch { /* non-critical */ }
 }

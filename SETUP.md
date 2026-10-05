@@ -8,15 +8,6 @@ Buka https://console.firebase.google.com → Buat project baru.
 - **Authentication** → **Sign-in method** → Enable **Google**
 - Isi **Support email** (wajib)
 
-### Firebase Firestore
-- **Firestore Database** → **Create database**
-- Pilih mode **test** (atau production nanti)
-- Region bebas (pilih yang terdekat)
-
-### Firebase Storage
-- **Storage** → **Get started** → **Next** → **Done**
-- Rules sementara: `allow read, write: if true;` (untuk development)
-
 ### Web App
 - **Project Overview** → **Web** (icon `</>`)
 - Register app (nama bebas)
@@ -45,17 +36,27 @@ Buka https://console.firebase.google.com → Buat project baru.
 
 ---
 
-## 2. Google AI Studio (Gemini)
+## 2. Ollama Cloud
 
-Buka https://aistudio.google.com/apikey
+Buka https://ollama.com/settings/keys
 
-- Klik **Create API Key**
-- Copy key → `GOOGLE_AI_STUDIO_API_KEY`
-- `GOOGLE_AI_STUDIO_MODEL` biarkan default (`gemini-2.5-flash`)
+- Buat API key dan copy ke `OLLAMA_CLOUD_API_KEY`
+- Gunakan model vision `gemma4:31b` pada `OLLAMA_CLOUD_MODEL`
+- Base URL: `https://ollama.com/v1`
+
+## 3. Supabase
+
+Buka https://supabase.com dan buat project baru.
+
+- Salin **Project URL** ke `NEXT_PUBLIC_SUPABASE_URL`
+- Salin **service_role key** dari **Project Settings → API** ke `SUPABASE_SERVICE_ROLE_KEY`
+- Jalankan isi file [`supabase/schema.sql`](./supabase/schema.sql) di **SQL Editor**
+
+> Service role key hanya boleh berada di server `.env`; jangan gunakan prefix `NEXT_PUBLIC_`.
 
 ---
 
-## 3. LemonSqueezy (Opsional — untuk payment)
+## 4. LemonSqueezy (Opsional — untuk payment)
 
 Buka https://app.lemonsqueezy.com
 
@@ -126,9 +127,14 @@ FIREBASE_PROJECT_ID=xxx
 FIREBASE_CLIENT_EMAIL=firebase-adminsdk@xxx.iam.gserviceaccount.com
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
 
-# ── Gemini AI ───────────────────────────────
-GOOGLE_AI_STUDIO_API_KEY=AIzaSy...
-GOOGLE_AI_STUDIO_MODEL=gemini-2.5-flash
+# ── Ollama Cloud AI ─────────────────────────
+OLLAMA_CLOUD_API_KEY=your_ollama_cloud_key
+OLLAMA_CLOUD_MODEL=gemma4:31b
+OLLAMA_CLOUD_BASE_URL=https://ollama.com/v1
+
+# ── Supabase ─────────────────────────────────
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 # ── LemonSqueezy ────────────────────────────
 LEMONSQUEEZY_API_KEY=ls_api_...

@@ -22,7 +22,7 @@ const en = {
     features: [
       { title: 'CV Builder', desc: 'Build ATS-friendly CVs with a visual editor and AI assistance for every section.' },
       { title: 'Upload Brochure', desc: 'Photo or PDF of a job vacancy brochure.' },
-      { title: 'AI Analysis', desc: 'Gemini AI extracts company, position, and writes application email.' },
+      { title: 'AI Analysis', desc: 'Ollama Cloud extracts company, position, and writes application email.' },
       { title: 'Review & Send', desc: 'Check results, edit if needed, send CV + email instantly.' },
       { title: 'ATS Templates', desc: 'Choose from multiple CV templates optimized for ATS parsing.' },
       { title: 'Export PDF', desc: 'Download your CV as a polished PDF ready to send.' },
@@ -37,7 +37,7 @@ const en = {
       { title: 'Lightning Fast', desc: 'One click sends CV and email to multiple job openings at once.' },
       { title: 'Secure & Private', desc: 'Email credentials are encrypted. Only you control the sending process.' },
     ],
-    marqueeItems: ['CV Builder', 'Bulk Send', 'Gemini AI', 'Encrypted', 'Direct SMTP', 'Read Brochure', 'ATS Template', 'AI Assist', 'No Setup'],
+    marqueeItems: ['CV Builder', 'Bulk Send', 'Ollama AI', 'Encrypted', 'Direct SMTP', 'Read Brochure', 'ATS Template', 'AI Assist', 'No Setup'],
     pricingTitle: 'Pricing',
     pricingFree: 'Free',
     pricingFreeDesc: '3 analyzes + 3 sends',

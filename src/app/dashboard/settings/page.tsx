@@ -1,8 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { doc, getDoc } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
 import { useAuth } from '@/lib/auth-context'
 import SettingsPage from '@/components/dashboard/SettingsPage'
 import Skeleton from '@/components/ui/Skeleton'
@@ -13,10 +11,9 @@ export default function SettingsRoute() {
   const [config, setConfig] = useState<UserConfig | null>(null)
 
   useEffect(() => {
-    if (!user || !db) return
-    getDoc(doc(db, 'users', user.uid)).then((snap) => {
-      if (snap.exists()) setConfig(snap.data() as UserConfig)
-    })
+    if (!user) return
+    user.getIdToken().then((token) => fetch('/api/user-config', { headers: { Authorization: `Bearer ${token}` } }))
+      .then((res) => res.json()).then((data) => setConfig(data as UserConfig)).catch(() => {})
   }, [user])
 
   if (!config) {

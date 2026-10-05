@@ -22,7 +22,7 @@ const id = {
     features: [
       { title: 'CV Builder', desc: 'Buat CV ATS-friendly dengan editor visual dan bantuan AI untuk setiap section.' },
       { title: 'Upload Brosur', desc: 'Foto atau PDF brosur lowongan kerja.' },
-      { title: 'AI Analisis', desc: 'Gemini AI ekstrak perusahaan, posisi, dan buat email lamaran.' },
+      { title: 'AI Analisis', desc: 'Ollama Cloud mengekstrak perusahaan, posisi, dan membuat email lamaran.' },
       { title: 'Review & Kirim', desc: 'Cek hasil, edit jika perlu, kirim CV + email langsung.' },
       { title: 'Template ATS', desc: 'Pilih dari berbagai template CV yang dioptimalkan untuk ATS.' },
       { title: 'Export PDF', desc: 'Download CV sebagai PDF siap kirim dengan format profesional.' },
@@ -37,7 +37,7 @@ const id = {
       { title: 'Kilat', desc: 'Satu klik mengirim CV dan email ke banyak lowongan sekaligus.' },
       { title: 'Aman & Privasi', desc: 'Kredensial email terenkripsi. Hanya kamu yang mengontrol kiriman.' },
     ],
-    marqueeItems: ['CV Builder', 'Kirim Massal', 'Gemini AI', 'Terenkripsi', 'SMTP Langsung', 'Baca Brosur', 'ATS Template', 'AI Assist', 'Tanpa Repot'],
+    marqueeItems: ['CV Builder', 'Kirim Massal', 'Ollama AI', 'Terenkripsi', 'SMTP Langsung', 'Baca Brosur', 'ATS Template', 'AI Assist', 'Tanpa Repot'],
     pricingTitle: 'Harga',
     pricingFree: 'Gratis',
     pricingFreeDesc: '3 analisis + 3 kirim',

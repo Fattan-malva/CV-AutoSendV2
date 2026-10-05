@@ -1,8 +1,6 @@
 'use client'
 
 import { createContext, useContext, useState, useCallback, useRef, type ReactNode } from 'react'
-import { doc, getDoc, updateDoc, increment } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
 import { decrypt } from '@/lib/crypto'
 import { cvHTML } from '@/services/cv.service'
 import type { AnalysisResult, UserConfig, CvData } from '@/types'
@@ -89,10 +87,10 @@ export function ProcessingProvider({
   const getCvDataPdfUrl = useCallback(async (): Promise<string | null> => {
     if (cvPdfUrlRef.current) return cvPdfUrlRef.current
     const u = userRef.current
-    if (!u || !db) return null
-    const snap = await getDoc(doc(db, 'users', u.uid))
-    if (!snap.exists()) return null
-    const data = snap.data().cvData as CvData | undefined
+    if (!u) return null
+    const token = await u.getIdToken()
+    const response = await fetch('/api/cv-data', { headers: { Authorization: `Bearer ${token}` } })
+    const { cvData: data } = await response.json() as { cvData?: CvData }
     if (!data || !data.personalInfo?.fullName) return null
 
     const iframe = document.createElement('iframe')
@@ -199,8 +197,12 @@ export function ProcessingProvider({
         expanded: true,
       })
       const c = configRef.current
-      if (db && c) {
-        await updateDoc(doc(db, 'users', u.uid), { usageAnalyze: increment(1) })
+      if (c) {
+        const token = await u.getIdToken()
+        await fetch('/api/user-config', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ usageAnalyze: c.usageAnalyze + 1 }),
+        })
         onConfigUpdate({ ...c, usageAnalyze: c.usageAnalyze + 1 })
       }
     } catch (e) {
@@ -249,8 +251,12 @@ export function ProcessingProvider({
       }
 
       updateItem(item.id, { status: 'sent', sending: false })
-      if (db) {
-        await updateDoc(doc(db, 'users', u.uid), { usageSend: increment(1) })
+      {
+        const token = await u.getIdToken()
+        await fetch('/api/user-config', {
+          method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ usageSend: c.usageSend + 1 }),
+        })
         onConfigUpdate(c ? { ...c, usageSend: c.usageSend + 1 } : c)
       }
     } catch (e) {

@@ -1,4 +1,4 @@
-import type { auth, firestore, storage } from 'firebase-admin'
+import type { auth } from 'firebase-admin'
 
 function getAdmin() {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -29,14 +29,4 @@ function getAdmin() {
 export function getAuthAdmin(): auth.Auth | null {
   const admin = getAdmin()
   return admin ? admin.auth() : null
-}
-
-export function getDbAdmin(): firestore.Firestore | null {
-  const admin = getAdmin()
-  return admin ? admin.firestore() : null
-}
-
-export function getStorageAdmin(): storage.Storage | null {
-  const admin = getAdmin()
-  return admin ? admin.storage() : null
 }

@@ -7,18 +7,19 @@ Kirim CV otomatis dengan AI ke setiap lowongan kerja — upload brosur, AI anali
 | Fitur | Keterangan |
 |-------|------------|
 | Upload Brosur | Upload foto/PDF brosur lowongan kerja |
-| AI Analisis | Gemini AI ekstrak perusahaan, posisi, & buat email lamaran otomatis |
+| AI Analisis | Ollama Cloud mengekstrak perusahaan, posisi, & membuat email lamaran otomatis |
 | Review & Kirim | Cek hasil, edit, kirim CV + email via SMTP |
 | Dashboard | Kelola pengiriman, riwayat, & pemakaian |
 | Google Login | Login via Google Firebase |
-| Firestore Storage | Simpan CV & konfigurasi |
+| Supabase Database | Simpan CV & konfigurasi |
 | Mode Gratis / Pro | Paket gratis (3x) atau unlimited (Pro $5/bln) |
 
 ## Tech Stack
 
 - [Next.js 16](https://nextjs.org) — React framework
-- [Firebase](https://firebase.google.com) — Auth, Firestore, Storage
-- [Gemini AI](https://aistudio.google.com) — AI analisis brosur
+- [Firebase](https://firebase.google.com) — Google Authentication
+- [Supabase](https://supabase.com) — Database dan riwayat lamaran
+- [Ollama Cloud](https://ollama.com) — AI analisis brosur
 - [Nodemailer](https://nodemailer.com) — Kirim email via SMTP
 - [Tailwind CSS 4](https://tailwindcss.com) — Styling
 - [LemonSqueezy](https://lemonsqueezy.com) — Payment gateway
@@ -33,7 +34,7 @@ src/
 │   ├── login/              # Login page
 │   ├── signup/             # Signup page
 │   └── api/                # API routes (thin — delegasi ke services)
-│       ├── analyze/        # POST — analisis brosur via Gemini
+│       ├── analyze/        # POST — analisis brosur via Ollama Cloud
 │       ├── send-email/     # POST — kirim email + test
 │       ├── upload-cv/      # POST — validasi & upload CV
 │       ├── save-settings/  # POST — simpan konfigurasi user
@@ -46,7 +47,7 @@ src/
 │
 ├── services/               # Business logic (server-side)
 │   ├── auth.service.ts     # Firebase token verification
-│   ├── analyze.service.ts  # Gemini AI analysis
+│   ├── analyze.service.ts  # Ollama Cloud AI analysis
 │   ├── email.service.ts    # Nodemailer email sending
 │   ├── settings.service.ts # User settings CRUD
 │   ├── cv.service.ts       # CV upload validation
@@ -80,4 +81,4 @@ Buka [http://localhost:3000](http://localhost:3000).
 
 ## Setup Lengkap
 
-Lihat [SETUP.md](./SETUP.md) untuk panduan konfigurasi Firebase, Gemini AI, dan LemonSqueezy.
+Lihat [SETUP.md](./SETUP.md) untuk panduan konfigurasi Firebase Auth, Ollama Cloud, Supabase, dan LemonSqueezy.

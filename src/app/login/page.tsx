@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
-import { doc, getDoc, setDoc } from 'firebase/firestore'
-import { auth, db } from '@/lib/firebase'
+import { auth } from '@/lib/firebase'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n-context'
 import { ArrowRight } from 'phosphor-react'
@@ -23,7 +22,7 @@ export default function LoginPage() {
   }, [user, loading, router])
 
   const handleGoogleLogin = async () => {
-    if (!auth || !db) return
+    if (!auth) return
     setLogging(true)
     setError('')
     try {
@@ -31,9 +30,10 @@ export default function LoginPage() {
       const result = await signInWithPopup(auth, provider)
       const u = result.user
 
-      const snap = await getDoc(doc(db, 'users', u.uid))
-      if (!snap.exists()) {
-        await setDoc(doc(db, 'users', u.uid), {
+      const token = await u.getIdToken()
+      await fetch('/api/user-config', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
           uid: u.uid,
           email: u.email || '',
           displayName: u.displayName || '',
@@ -50,8 +50,8 @@ export default function LoginPage() {
           lemonSqueezyCustomerId: null,
           lemonSqueezySubscriptionId: null,
           createdAt: new Date().toISOString(),
-        })
-      }
+        }),
+      })
 
       router.push('/dashboard')
     } catch (e) {

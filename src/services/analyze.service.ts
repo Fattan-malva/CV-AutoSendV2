@@ -1,9 +1,9 @@
 import { encrypt } from '@/lib/crypto'
 import type { AnalysisResult } from '@/types'
 
-const MODEL = process.env.GOOGLE_AI_STUDIO_MODEL || 'gemma-4-31b-it'
-const API_KEY = process.env.GOOGLE_AI_STUDIO_API_KEY || ''
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`
+const MODEL = process.env.OLLAMA_CLOUD_MODEL || 'gemma4:31b'
+const API_KEY = process.env.OLLAMA_CLOUD_API_KEY || ''
+const API_URL = `${process.env.OLLAMA_CLOUD_BASE_URL || 'https://ollama.com/v1'}/chat/completions`
 
 const SYSTEM_PROMPT_ID = (nama: string) => `Kamu adalah asisten yang membantu melamar kerja dengan nama pengirim: "${nama}".
 Analisis brosur lowongan kerja dan keluarkan JSON dengan field:
@@ -25,17 +25,20 @@ Analyze the job vacancy brochure and output JSON with fields:
 - alasan: 1 paragraph reason for applying
 - penutup: 1 paragraph closing. End with "Best regards,\\n${nama}" (use \\n for newline)`
 
-async function callGemma(body: object, retries = 3): Promise<Response> {
+async function callOllama(body: object, retries = 3): Promise<Response> {
   for (let attempt = 0; attempt < retries; attempt++) {
     const res = await fetch(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${API_KEY}`,
+      },
       body: JSON.stringify(body),
     })
 
     if (res.ok) return res
 
-    if (res.status >= 500 && attempt < retries - 1) {
+    if ((res.status >= 500 || res.status === 429) && attempt < retries - 1) {
       const delay = Math.min(1000 * Math.pow(2, attempt) + Math.random() * 1000, 8000)
       await new Promise(r => setTimeout(r, delay))
       continue
@@ -45,7 +48,7 @@ async function callGemma(body: object, retries = 3): Promise<Response> {
     throw new Error(errText)
   }
 
-  throw new Error('Gemma 4 API unavailable after retries')
+  throw new Error('Ollama Cloud API unavailable after retries')
 }
 
 async function parseGemmaJson(text: string): Promise<AnalysisResult> {
@@ -71,22 +74,23 @@ export async function analyzeBrochure(imageData: string, mimeType: string, sende
   const instructionText = language === 'en' ? 'Analyze this job vacancy brochure:' : 'Analisis brosur lowongan ini:'
 
   const body = {
-    contents: [
-      { role: 'user', parts: [{ text: prompt(senderName || (language === 'en' ? 'Applicant' : 'Pelamar')) }] },
+    model: MODEL,
+    stream: false,
+    messages: [
+      { role: 'system', content: prompt(senderName || (language === 'en' ? 'Applicant' : 'Pelamar')) },
       {
         role: 'user',
-        parts: [
-          { text: instructionText },
-          { inlineData: { mimeType, data: imageData } },
+        content: [
+          { type: 'text', text: instructionText },
+          { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageData}` } },
         ],
       },
     ],
   }
 
-  const res = await callGemma(body)
+  const res = await callOllama(body)
   const data = await res.json()
-  const part = data?.candidates?.[0]?.content?.parts?.find((p: { thought?: boolean }) => !p.thought)
-  const text = part?.text || data?.candidates?.[0]?.content?.parts?.[0]?.text
+  const text = data?.choices?.[0]?.message?.content
 
   if (!text) {
     throw new Error('AI returned empty response')

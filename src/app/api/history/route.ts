@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthAdmin, getDbAdmin } from '@/lib/firebase-admin'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { verifyToken } from '@/services/auth.service'
 
 async function verifyRequest(req: NextRequest) {
   const authHeader = req.headers.get('authorization')
@@ -7,29 +8,21 @@ async function verifyRequest(req: NextRequest) {
     throw { error: 'Unauthorized', status: 401 }
   }
 
-  const token = authHeader.slice(7)
-  const authAdmin = getAuthAdmin()
-  if (!authAdmin) {
-    throw { error: 'Server config error', status: 500 }
-  }
-  const decoded = await authAdmin.verifyIdToken(token)
-  const db = getDbAdmin()
+  const uid = await verifyToken(authHeader)
+  const db = getSupabaseAdmin()
   if (!db) {
     throw { error: 'Server config error', status: 500 }
   }
-  return { uid: decoded.uid, db }
+  return { uid, db }
 }
 
 export async function GET(req: NextRequest) {
   try {
     const { uid, db } = await verifyRequest(req)
 
-    const snap = await db.collection('users').doc(uid).collection('applications')
-      .orderBy('sentAt', 'desc')
-      .limit(100)
-      .get()
-
-    const logs = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    const { data, error } = await db.from('applications').select('*').eq('uid', uid).order('sent_at', { ascending: false }).limit(100)
+    if (error) throw error
+    const logs = (data || []).map((d) => ({ ...d, sentAt: d.sent_at, cvPath: d.cv_path }))
 
     return NextResponse.json({ logs })
   } catch (e: unknown) {
@@ -54,7 +47,8 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
     }
 
-    await db.collection('users').doc(uid).collection('applications').doc(id).update({ status })
+    const { error } = await db.from('applications').update({ status }).eq('id', id).eq('uid', uid)
+    if (error) throw error
 
     return NextResponse.json({ success: true })
   } catch (e: unknown) {

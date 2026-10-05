@@ -85,7 +85,7 @@ export default function Home() {
         '@type': 'HowToStep',
         position: 3,
         name: 'AI analyzes the brochure',
-        text: 'Gemini AI extracts the company name, position, and key requirements from the brochure, then writes a tailored application email.',
+        text: 'Ollama Cloud extracts the company name, position, and key requirements from the brochure, then writes a tailored application email.',
       },
       {
         '@type': 'HowToStep',

@@ -1,5 +1,3 @@
-import { doc, getDoc, setDoc } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
 import type { CvData, CvTemplateId } from '@/types'
 
 const ALLOWED_MIME_TYPES = ['application/pdf', 'image/png', 'image/jpeg']
@@ -29,20 +27,6 @@ export const defaultCvData: CvData = {
   certifications: [],
   languages: [],
   sectionOrder: ['personalInfo', 'summary', 'experience', 'education', 'skills', 'certifications', 'languages'],
-}
-
-export async function loadCvData(uid: string): Promise<CvData | null> {
-  if (!db) return null
-  const snap = await getDoc(doc(db, 'users', uid))
-  if (!snap.exists()) return null
-  const data = snap.data().cvData
-  if (!data) return null
-  return { ...defaultCvData, ...data }
-}
-
-export async function saveCvData(uid: string, cvData: CvData): Promise<void> {
-  if (!db) return
-  await setDoc(doc(db, 'users', uid), { cvData }, { merge: true })
 }
 
 export function defaultExperience(): import('@/types').CvExperience {

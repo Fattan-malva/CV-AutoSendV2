@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@fontsource/outfit": "^5.2.8",
-    "@google/genai": "^2.7.0",
     "@gsap/react": "^2.1.2",
+    "@supabase/supabase-js": "^2.109.0",
     "crypto-js": "^4.2.0",
     "firebase": "^12.14.0",
     "firebase-admin": "^13.10.0",

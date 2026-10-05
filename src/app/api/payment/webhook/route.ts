@@ -33,13 +33,12 @@ export async function POST(req: NextRequest) {
 
       const plan = getPlanFromVariantId(String(variantId))
 
-      const { getDbAdmin } = await import('@/lib/firebase-admin')
-      const db = getDbAdmin()
-      if (!db) {
+      const { upsertUserData, getSupabaseAdmin } = await import('@/lib/supabase-admin')
+      if (!getSupabaseAdmin()) {
         return NextResponse.json({ error: 'DB not available' }, { status: 500 })
       }
 
-      await db.collection('users').doc(uid).update({
+      await upsertUserData(uid, {
         plan,
         lemonSqueezyCustomerId: event.data?.attributes?.customer_id?.toString() || null,
         lemonSqueezySubscriptionId: event.data?.id || null,

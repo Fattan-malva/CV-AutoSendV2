@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth-context'
 import Skeleton from '@/components/ui/Skeleton'
 import CvEditor from './CvEditor'
 import CvPreview from './CvPreview'
-import { loadCvData, saveCvData, defaultCvData, templateLabels, cvHTML } from '@/services/cv.service'
+import { defaultCvData, templateLabels, cvHTML } from '@/services/cv.service'
 import type { CvData, CvTemplateId } from '@/types'
 
 export default function CvBuilderPage() {
@@ -24,7 +24,9 @@ export default function CvBuilderPage() {
     if (!user) return
     const load = async () => {
       try {
-        const data = await loadCvData(user.uid)
+        const token = await user.getIdToken()
+        const response = await fetch('/api/cv-data', { headers: { Authorization: `Bearer ${token}` } })
+        const { cvData: data } = await response.json()
         if (data) {
           setCv(data)
           setLanguage(data.language)
@@ -82,7 +84,10 @@ export default function CvBuilderPage() {
       const data = await res.json()
       const translated = { ...currentCv, ...data.translated, language: newLang }
 
-      await saveCvData(user.uid, translated)
+      await fetch('/api/cv-data', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ cvData: translated }),
+      })
 
       if (mountedRef.current) {
         setCv(translated)
@@ -99,8 +104,8 @@ export default function CvBuilderPage() {
     }
   }, [cv, language, user, fetchWithRetry])
 
-  // CV Builder: do NOT write to Firestore.
-  // Firestore update happens only on CV upload (Settings) or when user updates Settings.
+  // CV Builder: do NOT auto-save while typing.
+  // Explicit saves go through the Supabase-backed API route.
   const handleSave = useCallback(async () => {
     setSaving(true)
     setSaveMsg('')
@@ -113,7 +118,7 @@ export default function CvBuilderPage() {
     }
   }, [])
 
-  // Disable debounce auto-save to Firestore.
+  // Disable debounce auto-save to keep edits explicit.
   useEffect(() => {
     // no-op
   }, [])

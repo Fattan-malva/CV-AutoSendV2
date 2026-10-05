@@ -3,8 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
-import { doc, getDoc, setDoc } from 'firebase/firestore'
-import { auth, db } from '@/lib/firebase'
+import { auth } from '@/lib/firebase'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n-context'
 import { ArrowRight, Spinner } from 'phosphor-react'
@@ -25,8 +24,8 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
   if (!open) return null
 
   const handleGoogleLogin = async () => {
-    if (!auth || !db) {
-      setError('Firebase not configured')
+    if (!auth) {
+      setError('Authentication not configured')
       return
     }
     setLoading(true)
@@ -36,9 +35,10 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
       const result = await signInWithPopup(auth, provider)
       const u = result.user
 
-      const snap = await getDoc(doc(db, 'users', u.uid))
-      if (!snap.exists()) {
-        await setDoc(doc(db, 'users', u.uid), {
+      const token = await u.getIdToken()
+      await fetch('/api/user-config', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
           uid: u.uid,
           email: u.email || '',
           displayName: u.displayName || '',
@@ -55,8 +55,8 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
           lemonSqueezyCustomerId: null,
           lemonSqueezySubscriptionId: null,
           createdAt: new Date().toISOString(),
-        })
-      }
+        }),
+      })
 
       setLoading(false)
       setTransitioning(true)
