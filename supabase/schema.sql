@@ -5,6 +5,13 @@ create table if not exists public.users (
   created_at timestamptz not null default now()
 );
 
+-- Add the dedicated plan column (safe to re-run; ignores if already present).
+alter table public.users
+  add column if not exists plan text not null default 'free' check (plan in ('free','basic','starter','pro'));
+
+-- Backfill: move an existing plan stored inside data into the dedicated column.
+update public.users set plan = (data->>'plan') where data ? 'plan' and (data->>'plan') is not null;
+
 create table if not exists public.applications (
   id uuid primary key default gen_random_uuid(),
   uid text not null references public.users(id) on delete cascade,

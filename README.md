@@ -17,7 +17,7 @@ Kirim CV otomatis dengan AI ke setiap lowongan kerja — upload brosur, AI anali
 ## Tech Stack
 
 - [Next.js 16](https://nextjs.org) — React framework
-- [Firebase](https://firebase.google.com) — Google Authentication
+- [Firebase](https://firebase.google.com) — Google Authentication only
 - [Supabase](https://supabase.com) — Database dan riwayat lamaran
 - [Ollama Cloud](https://ollama.com) — AI analisis brosur
 - [Nodemailer](https://nodemailer.com) — Kirim email via SMTP

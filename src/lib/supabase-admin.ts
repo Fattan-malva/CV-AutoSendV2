@@ -14,18 +14,21 @@ export function getSupabaseAdmin(): SupabaseClient | null {
 export async function getUserData(uid: string): Promise<Record<string, unknown> | null> {
   const supabase = getSupabaseAdmin()
   if (!supabase) throw new Error('Supabase is not configured')
-  const { data, error } = await supabase.from('users').select('data').eq('id', uid).maybeSingle()
+  const { data, error } = await supabase.from('users').select('data, plan').eq('id', uid).maybeSingle()
   if (error) throw error
-  return (data?.data as Record<string, unknown> | undefined) || null
+  if (!data) return null
+  const json = (data.data as Record<string, unknown> | undefined) || {}
+  return { ...json, uid, plan: data.plan || json.plan || 'free' }
 }
 
 export async function upsertUserData(uid: string, values: Record<string, unknown>) {
   const supabase = getSupabaseAdmin()
   if (!supabase) throw new Error('Supabase is not configured')
   const current = await getUserData(uid)
-  const { error } = await supabase.from('users').upsert({
-    id: uid,
-    data: { ...(current || {}), ...values, uid },
-  })
+  const { plan, ...rest } = values
+  const merged = { ...(current || {}), ...rest, uid }
+  const row: Record<string, unknown> = { id: uid, data: merged }
+  if (plan !== undefined) row.plan = String(plan)
+  const { error } = await supabase.from('users').upsert(row)
   if (error) throw error
 }
