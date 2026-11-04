@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n-context'
+import { ThemeSwitch } from '@/components/theme-switch'
 
 interface NavbarProps {
   onOpenAuth: () => void
@@ -77,6 +78,7 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
                 <span>{t.nav.login}</span>
               </button>
             )}
+            <ThemeSwitch className='hidden md:inline-flex items-center gap-2' />
 
             <button
               onClick={() => setMenuOpen(!menuOpen)}

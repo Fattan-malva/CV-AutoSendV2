@@ -61,7 +61,7 @@ export default function RootLayout({
         <meta name="google-site-verification" content="xgzeigl6YoKgRyfWu9ZPM4xn0OY4ApfTzcfb7FBKIwY" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('ceefy-theme')||'dark';var d=t==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;var r=document.documentElement;r.classList.toggle('dark',d==='dark');r.setAttribute('data-theme',d);r.style.colorScheme=d;}catch(e){document.documentElement.classList.add('dark');document.documentElement.setAttribute('data-theme','dark');}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('ceefy-theme')||'light';var d=t==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;var r=document.documentElement;r.classList.toggle('dark',d==='dark');r.setAttribute('data-theme',d);r.style.colorScheme=d;}catch(e){document.documentElement.classList.add('dark');document.documentElement.setAttribute('data-theme','dark');}})();`,
           }}
         />
         <script type="application/ld+json" dangerouslySetInnerHTML={{

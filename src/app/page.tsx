@@ -104,7 +104,7 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(howToLd) }}
       />
-      <div className='landing-root dark bg-background text-foreground'>
+      <div className='landing-root bg-background text-foreground'>
         <Navbar onOpenAuth={() => setAuthOpen(true)} />
         <main className="overflow-x-hidden w-full max-w-full">
           <Hero onOpenAuth={() => setAuthOpen(true)} />

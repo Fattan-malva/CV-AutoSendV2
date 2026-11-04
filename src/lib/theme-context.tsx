@@ -22,8 +22,8 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'dark',
-  themeMode: 'dark',
+  theme: 'light',
+  themeMode: 'light',
   setTheme: () => {},
   toggleTheme: () => {},
 })
@@ -32,7 +32,7 @@ const STORAGE_KEY = 'ceefy-theme'
 
 function resolveTheme(mode: ThemeMode): ResolvedTheme {
   if (mode !== 'system') return mode
-  if (typeof window === 'undefined') return 'dark'
+  if (typeof window === 'undefined') return 'light'
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
@@ -45,13 +45,13 @@ function applyTheme(theme: ResolvedTheme) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [themeMode, setThemeMode] = useState<ThemeMode>('dark')
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('dark')
+  const [themeMode, setThemeMode] = useState<ThemeMode>('light')
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('light')
 
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY) as ThemeMode | null
     const nextMode: ThemeMode =
-      saved === 'light' || saved === 'dark' || saved === 'system' ? saved : 'dark'
+      saved === 'light' || saved === 'dark' || saved === 'system' ? saved : 'light'
     // eslint-disable-next-line react-hooks/set-state-in-effect -- syncing persisted preference after hydration
     setThemeMode(nextMode)
     const next = resolveTheme(nextMode)

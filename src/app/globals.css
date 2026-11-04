@@ -9,8 +9,7 @@
    and `data-theme="light"` for the light palette.
    ========================================================= */
 
-:root,
-.landing-root {
+:root {
   --radius: 0.625rem;
 
   --background: #050506;
@@ -184,15 +183,19 @@
     overflow-x: hidden;
   }
 
-  /* The landing page is always dark, even when the dashboard is in light mode. */
-  html:has(.landing-root) {
-    color-scheme: dark;
-    background-color: #050506;
+  /* The landing page follows the active theme (light/dark). */
+
+  /* Hide scrollbars on the landing page (webkit + firefox + edge). */
+  html:has(.landing-root),
+  html:has(.landing-root) body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
-  html:has(.landing-root) body {
-    background-color: #050506;
-    color: #fafafa;
+  html:has(.landing-root) ::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
   }
 
   /* Override Radix scroll locking for sticky headers */
