@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
 import { FileText, MessageSquareText, ShieldCheck, Target, Zap } from 'lucide-react'
 import { useI18n } from '@/lib/i18n-context'
 import { Badge } from '@/components/ui/badge'
@@ -8,84 +8,96 @@ import { Card } from '@/components/ui/card'
 import Reveal from './Reveal'
 
 const iconMap = [FileText, Target, Zap, ShieldCheck]
-const ROTATE_MS = 3500
 
+// Pure CSS loop: the track moves up by exactly one copy of the list, then restarts seamlessly.
+// Every item carries the same bottom padding, so both copies have identical height.
+const TRACK_STYLE: CSSProperties = {
+  animation: 'ceefy-desire-loop 24s linear infinite',
+}
+
+/**
+ * Vertical looping stack of cards that scrolls upward continuously.
+ * The card nearest the centre is emphasised by a small JS pass; hover pauses the loop.
+ */
 export default function DesireSection() {
   const { t } = useI18n()
   const cards = t.landing.desireCards
-  const [active, setActive] = useState(0)
-  const [paused, setPaused] = useState(false)
+  const viewportRef = useRef<HTMLDivElement>(null)
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([])
 
-  // Highlight cycles through the cards. Hovering or focusing the stack pauses it, and clicking pins a card.
+  const loop = [...cards, ...cards]
+
   useEffect(() => {
-    if (paused || cards.length < 2) return
-    const id = window.setInterval(() => {
-      setActive((i) => (i + 1) % cards.length)
-    }, ROTATE_MS)
-    return () => window.clearInterval(id)
-  }, [paused, cards.length])
+    const vp = viewportRef.current
+    if (!vp || cards.length < 2) return
+
+    let raf = 0
+    const tick = () => {
+      const vpRect = vp.getBoundingClientRect()
+      const mid = vpRect.top + vpRect.height / 2
+      itemRefs.current.forEach((el) => {
+        if (!el) return
+        const r = el.getBoundingClientRect()
+        const d = Math.min(Math.abs(r.top + r.height / 2 - mid) / (r.height + 24), 1)
+        el.style.transform = `scale(${1 - d * 0.06})`
+        el.style.opacity = String(1 - d * 0.6)
+      })
+      raf = requestAnimationFrame(tick)
+    }
+
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [cards.length])
 
   return (
-    <section id="why-different" className="border-b py-24 md:py-32">
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-8 md:grid-cols-2 md:gap-20">
-        <Reveal>
-          <Badge
-            variant="outline"
-            className="gap-1.5 rounded-full px-3 py-1 text-xs font-medium uppercase tracking-wide"
-          >
+    <section id="why-different" className="w-full">
+      <style>{`@keyframes ceefy-desire-loop { from { transform: translateY(0); } to { transform: translateY(-50%); } }`}</style>
+
+      <div className="grid lg:grid-cols-2">
+        <Reveal className="flex flex-col justify-center gap-5 p-6 md:p-10 lg:p-14">
+          <Badge variant="outline" className="w-fit gap-1.5 rounded-full px-3 py-1 text-xs font-medium uppercase tracking-wide">
             <MessageSquareText />
             {t.landing.desireLabel}
           </Badge>
-          <h2 className="mt-6 text-3xl font-bold tracking-tight sm:text-4xl">{t.landing.desireTitle}</h2>
-          <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground sm:text-lg">
+          <h2 className="text-4xl font-bold leading-[1.02] tracking-tight md:text-5xl">{t.landing.desireTitle}</h2>
+          <p className="max-w-md text-base leading-relaxed text-muted-foreground md:text-lg">
             {t.landing.desireParagraph}
           </p>
         </Reveal>
 
-        <div
-          className="flex flex-col gap-3"
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-        >
-          {cards.map((g, i) => {
-            const Icon = iconMap[i % iconMap.length]
-            const isActive = i === active
+        <div className="relative p-6 md:p-10 lg:p-14">
+          <div ref={viewportRef} className="group relative h-[26rem] overflow-hidden md:h-[30rem]">
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-16 bg-gradient-to-b from-background to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-background to-transparent" />
 
-            return (
-              <Reveal key={i} delay={i * 80}>
-                <Card
-                  role="button"
-                  tabIndex={0}
-                  aria-pressed={isActive}
-                  onMouseEnter={() => setActive(i)}
-                  onClick={() => setActive(i)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault()
-                      setActive(i)
-                    }
-                  }}
-                  onFocus={() => setPaused(true)}
-                  onBlur={() => setPaused(false)}
-                  className={`cursor-pointer flex-row items-start gap-4 p-6 outline-none transition-all duration-500 focus-visible:ring-[3px] focus-visible:ring-ring/50 ${
-                    isActive ? 'border-primary/40 shadow-md' : 'opacity-60 hover:opacity-90'
-                  }`}
-                >
+            <div
+              className="flex flex-col will-change-transform group-hover:[animation-play-state:paused]"
+              style={TRACK_STYLE}
+            >
+              {loop.map((g, i) => {
+                const Icon = iconMap[i % iconMap.length]
+                return (
                   <div
-                    className={`flex size-10 shrink-0 items-center justify-center rounded-md border transition-colors duration-500 ${
-                      isActive ? 'border-primary bg-primary text-primary-foreground' : 'bg-muted'
-                    }`}
+                    key={i}
+                    ref={(el) => {
+                      itemRefs.current[i] = el
+                    }}
+                    className="origin-center pb-3 will-change-transform"
                   >
-                    <Icon className="size-5" />
+                    <Card className="flex-row items-start gap-4 border-0 bg-muted/40 p-5 shadow-none">
+                      <div className="flex size-10 shrink-0 items-center justify-center rounded-md bg-background">
+                        <Icon className="size-5 text-brand" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">{g.title}</h3>
+                        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{g.desc}</p>
+                      </div>
+                    </Card>
                   </div>
-                  <div>
-                    <h3 className="font-semibold">{g.title}</h3>
-                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{g.desc}</p>
-                  </div>
-                </Card>
-              </Reveal>
-            )
-          })}
+                )
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -27,7 +27,7 @@ export default function SpotlightCard({ className, children, ...props }: Compone
       ref={ref}
       onPointerMove={handleMove}
       className={cn(
-        'group isolate relative overflow-hidden transition-[border-color,transform] duration-300 hover:border-foreground/20',
+        'group isolate relative overflow-hidden border-transparent transition-[border-color,transform] duration-300',
         className
       )}
       {...props}

@@ -21,6 +21,9 @@ interface NavbarProps {
   onOpenAuth: () => void
 }
 
+const SECTION_IDS = ['features', 'why-different', 'pricing', 'demo']
+
+/** Floating pill navbar, fixed to the top of the viewport. */
 export default function Navbar({ onOpenAuth }: NavbarProps) {
   const { user } = useAuth()
   const { t, locale, setLocale } = useI18n()
@@ -32,13 +35,12 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
   const nextLocaleLabel = nextLocale === 'en' ? 'English' : 'Bahasa Indonesia'
 
   const navLinks = [
-    { label: t.landing.featuresTitle, href: '/#features', id: 'features' },
+    { label: 'How It Works', href: '/#features', id: 'features' },
     { label: t.landing.desireLabel, href: '/#why-different', id: 'why-different' },
     { label: t.landing.pricingTitle, href: '/#pricing', id: 'pricing' },
     { label: t.demo.label, href: '/#demo', id: 'demo' },
   ]
 
-  // Border and blur appear once the page is scrolled.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
     onScroll()
@@ -46,11 +48,11 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Highlight the nav link for the section currently in the middle of the viewport.
+  // Highlight the link of the section currently crossing the middle of the viewport.
   useEffect(() => {
-    const sections = navLinks
-      .map((l) => document.getElementById(l.id))
-      .filter((el): el is HTMLElement => el !== null)
+    const sections = SECTION_IDS.map((id) => document.getElementById(id)).filter(
+      (el): el is HTMLElement => el !== null
+    )
     if (sections.length === 0) return
 
     const io = new IntersectionObserver(
@@ -63,30 +65,22 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
     )
     sections.forEach((s) => io.observe(s))
     return () => io.disconnect()
-    // navLinks ids are static; labels are not needed for observation
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (
-    <header
-      className={cn(
-        'sticky top-0 z-50 w-full border-b transition-[background-color,border-color,box-shadow] duration-300',
-        scrolled
-          ? 'border-border bg-background/80 shadow-sm backdrop-blur-md supports-[backdrop-filter]:bg-background/60'
-          : 'border-transparent bg-background'
-      )}
-    >
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-8">
-        <Link href="/" className="group flex items-center gap-2.5">
-          <img
-            src="/icons.png"
-            alt="ceefy"
-            className="size-7 object-contain transition-transform duration-500 group-hover:-rotate-6"
-          />
+    <header className="fixed inset-x-0 top-4 z-50 flex justify-center px-3">
+      <nav
+        className={cn(
+          'flex w-full max-w-4xl items-center justify-between gap-2 rounded-full border bg-background/75 py-1.5 ps-4 pe-1.5 backdrop-blur-xl transition-shadow duration-300',
+          scrolled ? 'shadow-lg' : 'shadow-sm'
+        )}
+      >
+        <Link href="/" className="flex items-center gap-2">
+          <img src="/icons.png" alt="ceefy" className="size-6 object-contain" />
           <span className="text-sm font-semibold tracking-tight">ceefy</span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <div className="hidden items-center gap-0.5 md:flex">
           {navLinks.map((link) => {
             const isActive = activeId === link.id
             return (
@@ -95,21 +89,21 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
                 href={link.href}
                 aria-current={isActive ? 'true' : undefined}
                 className={cn(
-                  'rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-accent hover:text-foreground',
-                  isActive ? 'font-medium text-foreground' : 'text-muted-foreground'
+                  'rounded-full px-3 py-1.5 text-sm transition-colors hover:bg-accent hover:text-foreground',
+                  isActive ? 'bg-accent font-medium text-foreground' : 'text-muted-foreground'
                 )}
               >
                 {link.label}
               </Link>
             )
           })}
-        </nav>
+        </div>
 
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
             size="sm"
-            className="hidden text-muted-foreground md:inline-flex"
+            className="hidden rounded-full text-muted-foreground md:inline-flex"
             onClick={() => setLocale(nextLocale)}
           >
             {nextLocale.toUpperCase()}
@@ -118,18 +112,18 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
           <ThemeSwitch />
 
           {user ? (
-            <Button asChild size="sm" className="ms-2 hidden md:inline-flex">
+            <Button asChild size="sm" className="ms-1 hidden rounded-full md:inline-flex">
               <Link href="/dashboard">{t.nav.dashboard}</Link>
             </Button>
           ) : (
-            <Button size="sm" className="ms-2 hidden md:inline-flex" onClick={onOpenAuth}>
+            <Button size="sm" className="ms-1 hidden rounded-full md:inline-flex" onClick={onOpenAuth}>
               {t.nav.login}
             </Button>
           )}
 
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden" aria-label="Menu">
+              <Button variant="ghost" size="icon" className="rounded-full md:hidden" aria-label="Menu">
                 <Menu />
               </Button>
             </SheetTrigger>
@@ -176,7 +170,7 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
             </SheetContent>
           </Sheet>
         </div>
-      </div>
+      </nav>
     </header>
   )
 }
