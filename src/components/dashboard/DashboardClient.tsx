@@ -1,450 +1,952 @@
 'use client'
 
-import { useCallback, useRef, useEffect, useState } from 'react'
-import { ArrowRight, FileText, Upload, X, WarningCircle, PaperPlaneTilt } from 'phosphor-react'
+import { useCallback, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
+import {
+  Activity,
+  AlertCircle,
+  ArrowRight,
+  ArrowUpRight,
+  CheckCircle2,
+  ChevronDown,
+  FileText,
+  Inbox,
+  Loader2,
+  Paperclip,
+  Send,
+  Sparkles,
+  Upload,
+  X,
+  Zap,
+} from 'lucide-react'
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Collapsible,
+  CollapsibleContent,
+} from '@/components/ui/collapsible'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Progress } from '@/components/ui/progress'
+import { Separator } from '@/components/ui/separator'
+import { Textarea } from '@/components/ui/textarea'
+import { useApplicationLogs } from '@/hooks/use-application-logs'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n-context'
+import { getPlanLimit, getPlanLabel, isUnlimited } from '@/lib/plans'
 import { useProcessing } from '@/lib/processing-context'
-import Skeleton from '@/components/ui/Skeleton'
-import type { AnalysisResult } from '@/types'
+import { cn, formatDate, formatNumber } from '@/lib/utils'
+import { StatusBadge } from './application-status'
+import type { BulkItem } from '@/lib/processing-context'
 
-function GrowableTextarea({ value, onChange, className, placeholder }: {
+function GrowableTextarea({
+  value,
+  onChange,
+  placeholder,
+  className,
+}: {
   value: string
-  onChange: (v: string) => void
-  className?: string
+  onChange: (value: string) => void
   placeholder?: string
+  className?: string
 }) {
   const ref = useRef<HTMLTextAreaElement>(null)
-  useEffect(() => {
-    const el = ref.current
-    if (el) {
-      el.style.height = 'auto'
-      el.style.height = Math.max(el.scrollHeight, 60) + 'px'
-    }
-  }, [value])
+
   return (
-    <textarea
+    <Textarea
       ref={ref}
       value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={className}
+      onChange={(event) => {
+        onChange(event.target.value)
+        const el = event.currentTarget
+        el.style.height = 'auto'
+        el.style.height = `${Math.max(el.scrollHeight, 72)}px`
+      }}
       placeholder={placeholder}
-      style={{ minHeight: 60, resize: 'vertical' }}
+      className={cn('min-h-[72px] resize-y', className)}
+      style={{ fieldSizing: 'content' } as React.CSSProperties}
     />
   )
 }
 
-function UsageCircle({ label, used, total, onUpgrade }: { label: string; used: number; total: number; onUpgrade?: () => void }) {
-  const { t } = useI18n()
-  const isUnlimited = total === Infinity
-  const percentage = isUnlimited ? 100 : Math.min((used / total) * 100, 100)
-  const isNearLimit = !isUnlimited && used >= total * 0.8 && used < total
-  const isFull = !isUnlimited && used >= total
-  const radius = 32
-  const circumference = 2 * Math.PI * radius
-  const offset = circumference - (percentage / 100) * circumference
+function StatCard({
+  label,
+  value,
+  hint,
+  icon: Icon,
+  trend,
+  accent,
+}: {
+  label: string
+  value: string
+  hint: string
+  icon: React.ComponentType<{ className?: string }>
+  trend?: string | null
+  accent?: boolean
+}) {
+  const positive = trend?.startsWith('+')
+  return (
+    <Card className={cn('gap-0 py-0', accent && 'border-primary/25 bg-primary/[0.03]')}>
+      <CardHeader className='flex flex-row items-center justify-between gap-2 space-y-0 px-5 pb-2 pt-5'>
+        <CardDescription className='text-xs font-medium uppercase tracking-wide'>
+          {label}
+        </CardDescription>
+        <div
+          className={cn(
+            'flex size-8 items-center justify-center rounded-lg border bg-background',
+            accent && 'border-primary/30 text-primary'
+          )}
+        >
+          <Icon className='size-4' />
+        </div>
+      </CardHeader>
+      <CardContent className='px-5 pb-5'>
+        <div className='flex items-end justify-between gap-2'>
+          <div>
+            <p className='text-2xl font-semibold tracking-tight'>{value}</p>
+            <p className='mt-1 text-xs text-muted-foreground'>{hint}</p>
+          </div>
+          {trend ? (
+            <Badge
+              variant='secondary'
+              className={cn(
+                'gap-0.5 text-[10px]',
+                positive ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
+              )}
+            >
+              {positive ? <ArrowUpRight className='size-3' /> : null}
+              {trend}
+            </Badge>
+          ) : null}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
-  const getStrokeColor = () => {
-    if (isUnlimited) return '#8A9A8A'
-    if (isFull) return '#ef4444'
-    if (isNearLimit) return '#fbbf24'
-    return '#8A9A8A'
-  }
+function UsageCard({
+  analyzeUsed,
+  sendUsed,
+  plan,
+  onUpgrade,
+}: {
+  analyzeUsed: number
+  sendUsed: number
+  plan: Parameters<typeof getPlanLimit>[0]
+  onUpgrade: () => void
+}) {
+  const unlimited = isUnlimited(plan)
+  const limit = getPlanLimit(plan)
+  const analyzePercent = unlimited ? 100 : Math.min(100, (analyzeUsed / limit) * 100)
+  const sendPercent = unlimited ? 100 : Math.min(100, (sendUsed / limit) * 100)
+  const remaining = unlimited ? Infinity : Math.max(0, limit - analyzeUsed)
 
   return (
-    <div className="flex flex-col items-center gap-2 group cursor-pointer" onClick={onUpgrade}>
-      <div className="relative">
-        <svg width="80" height="80" className="transform -rotate-90">
-          <circle cx="40" cy="40" r={radius} fill="none" stroke="var(--border)" strokeWidth="6" />
-          <circle
-            cx="40" cy="40" r={radius}
-            fill="none"
-            stroke={getStrokeColor()}
-            strokeWidth="6"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            className="transition-all duration-700 ease-out"
+    <Card className='h-full'>
+      <CardHeader>
+        <CardTitle className='flex items-center gap-2 text-base'>
+          <Zap className='size-4 text-primary' />
+          Usage & plan
+        </CardTitle>
+        <CardDescription>
+          Your monthly AI analyses and email sends.
+        </CardDescription>
+        <CardAction>
+          <Badge variant={unlimited ? 'default' : 'secondary'} className='uppercase'>
+            {getPlanLabel(plan)}
+          </Badge>
+        </CardAction>
+      </CardHeader>
+      <CardContent className='space-y-5'>
+        <div className='space-y-2'>
+          <div className='flex items-center justify-between text-xs'>
+            <span className='flex items-center gap-1.5 font-medium'>
+              <Sparkles className='size-3.5 text-primary' /> AI analyses
+            </span>
+            <span className='text-muted-foreground'>
+              {unlimited ? `${analyzeUsed} used · unlimited` : `${analyzeUsed} / ${limit}`}
+            </span>
+          </div>
+          <Progress value={analyzePercent} />
+        </div>
+
+        <div className='space-y-2'>
+          <div className='flex items-center justify-between text-xs'>
+            <span className='flex items-center gap-1.5 font-medium'>
+              <Send className='size-3.5 text-primary' /> Email sends
+            </span>
+            <span className='text-muted-foreground'>
+              {unlimited ? `${sendUsed} used · unlimited` : `${sendUsed} / ${limit}`}
+            </span>
+          </div>
+          <Progress
+            value={sendPercent}
+            indicatorClassName={cn(sendPercent >= 100 && 'bg-destructive')}
           />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="font-serif text-lg font-semibold text-foreground">
-            {isUnlimited ? '∞' : Math.max(0, total - used)}
-          </span>
-          <span className="text-[9px] text-muted -mt-1 uppercase tracking-wider">{t.dashboard.usageLeft}</span>
         </div>
-      </div>
-      <div className="text-center">
-        <span className="text-[10px] text-muted uppercase tracking-wider">{label}</span>
-        <div className="text-xs text-foreground">
-          {isUnlimited ? t.dashboard.usageUsed.replace('{count}', String(used)) : `${used} ${t.dashboard.of} ${total}`}
-        </div>
-      </div>
-      {isNearLimit && !isUnlimited && !isFull && (
-        <div className="absolute -top-1 -right-1 w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-      )}
+
+        <Separator />
+
+        {unlimited ? (
+          <div className='rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs'>
+            <div className='flex items-center gap-2 font-medium text-emerald-600 dark:text-emerald-400'>
+              <CheckCircle2 className='size-4' /> Unlimited access active
+            </div>
+            <p className='mt-1 text-muted-foreground'>
+              Enjoy unlimited analyses and sends for your job search.
+            </p>
+          </div>
+        ) : (
+          <div className='space-y-3'>
+            <div className='flex items-center justify-between rounded-lg border bg-muted/40 px-3 py-2 text-xs'>
+              <span className='text-muted-foreground'>Analyses remaining</span>
+              <span className='font-semibold'>{formatNumber(remaining)}</span>
+            </div>
+            <Button onClick={onUpgrade} className='w-full'>
+              <Sparkles className='size-4' />
+              Upgrade plan
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+type ChartTooltipPayload = {
+  dataKey?: string | number
+  name?: string | number
+  value?: number | string
+  color?: string
+}
+
+function ChartTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean
+  payload?: ChartTooltipPayload[]
+  label?: string | number
+}) {
+  if (!active || !payload?.length) return null
+  return (
+    <div className='rounded-lg border bg-popover px-3 py-2 text-xs shadow-lg'>
+      <p className='mb-1 font-medium'>{label}</p>
+      {payload.map((entry) => (
+        <p key={entry.dataKey} className='flex items-center gap-1.5 text-muted-foreground'>
+          <span
+            className='size-1.5 rounded-full'
+            style={{ backgroundColor: entry.color }}
+          />
+          {entry.name}: <span className='font-medium text-foreground'>{entry.value}</span>
+        </p>
+      ))}
     </div>
   )
 }
 
-function FileStatusBadge({ status, isAnalyzing, isSending }: { status: string; isAnalyzing?: boolean; isSending?: boolean }) {
-  const { t } = useI18n()
-
-  if (isAnalyzing) {
-    return (
-      <div className="flex items-center gap-2">
-        <Skeleton className="w-3 h-3 rounded-full" />
-        <span className="text-[10px] text-accent uppercase tracking-wider">{t.dashboard.fileStatus.analyzing}</span>
-      </div>
-    )
-  }
-
-  if (isSending) {
-    return (
-      <div className="flex items-center gap-2">
-        <Skeleton className="w-3 h-3 rounded-full" />
-        <span className="text-[10px] text-accent uppercase tracking-wider">{t.dashboard.sending}</span>
-      </div>
-    )
-  }
-
-  const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
-    pending: { label: t.dashboard.fileStatus.pending, color: 'text-muted', bg: 'bg-subtle' },
-    done: { label: t.dashboard.fileStatus.done, color: 'text-accent', bg: 'bg-accent/10' },
-    sent: { label: t.dashboard.fileStatus.sent, color: 'text-accent', bg: 'bg-accent/10' },
-    error: { label: t.dashboard.fileStatus.error, color: 'text-red-400', bg: 'bg-red-500/10' },
-  }
-
-  const config = statusConfig[status] || statusConfig.pending
-
+function ActivityChart({ data }: { data: { day: string; applications: number; approved: number }[] }) {
   return (
-    <span className={`text-[10px] px-2.5 py-1 rounded-full uppercase tracking-wider ${config.bg} ${config.color}`}>
-      {config.label}
-    </span>
+    <Card className='h-full'>
+      <CardHeader>
+        <CardTitle className='text-base'>Application activity</CardTitle>
+        <CardDescription>Applications sent over the last 7 days.</CardDescription>
+        <CardAction>
+          <Badge variant='outline' className='gap-1.5'>
+            <Activity className='size-3' /> Live
+          </Badge>
+        </CardAction>
+      </CardHeader>
+      <CardContent>
+        <div className='h-[240px] w-full'>
+          <ResponsiveContainer width='100%' height='100%'>
+            <AreaChart data={data} margin={{ left: -24, right: 8, top: 8, bottom: 0 }}>
+              <defs>
+                <linearGradient id='fillApplications' x1='0' y1='0' x2='0' y2='1'>
+                  <stop offset='5%' stopColor='var(--chart-1)' stopOpacity={0.35} />
+                  <stop offset='95%' stopColor='var(--chart-1)' stopOpacity={0.02} />
+                </linearGradient>
+                <linearGradient id='fillApproved' x1='0' y1='0' x2='0' y2='1'>
+                  <stop offset='5%' stopColor='var(--chart-2)' stopOpacity={0.3} />
+                  <stop offset='95%' stopColor='var(--chart-2)' stopOpacity={0.02} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray='3 3' stroke='var(--border)' vertical={false} />
+              <XAxis
+                dataKey='day'
+                tickLine={false}
+                axisLine={false}
+                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                dy={6}
+              />
+              <YAxis
+                allowDecimals={false}
+                tickLine={false}
+                axisLine={false}
+                tick={{ fontSize: 11, fill: 'var(--muted-foreground)' }}
+                width={36}
+              />
+              <Tooltip content={<ChartTooltip />} />
+              <Area
+                type='monotone'
+                dataKey='applications'
+                name='Sent'
+                stroke='var(--chart-1)'
+                strokeWidth={2}
+                fill='url(#fillApplications)'
+              />
+              <Area
+                type='monotone'
+                dataKey='approved'
+                name='Approved'
+                stroke='var(--chart-2)'
+                strokeWidth={2}
+                fill='url(#fillApproved)'
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
   )
+}
+
+function UploadStatusBadge({ item }: { item: BulkItem }) {
+  if (item.sending) {
+    return (
+      <Badge variant='secondary' className='gap-1 text-[10px]'>
+        <Loader2 className='size-3 animate-spin' /> Sending
+      </Badge>
+    )
+  }
+  switch (item.status) {
+    case 'analyzing':
+      return (
+        <Badge variant='secondary' className='gap-1 text-[10px]'>
+          <Loader2 className='size-3 animate-spin' /> Analyzing
+        </Badge>
+      )
+    case 'done':
+      return (
+        <Badge className='gap-1 border-transparent bg-emerald-500/10 text-[10px] text-emerald-600 dark:text-emerald-400'>
+          <CheckCircle2 className='size-3' /> Ready
+        </Badge>
+      )
+    case 'sent':
+      return (
+        <Badge className='gap-1 border-transparent bg-primary/10 text-[10px] text-primary'>
+          <Send className='size-3' /> Sent
+        </Badge>
+      )
+    case 'error':
+      return (
+        <Badge variant='destructive' className='gap-1 text-[10px]'>
+          <AlertCircle className='size-3' /> Failed
+        </Badge>
+      )
+    default:
+      return (
+        <Badge variant='outline' className='gap-1 text-[10px]'>
+          <Paperclip className='size-3' /> Pending
+        </Badge>
+      )
+  }
 }
 
 export default function DashboardClient() {
   const { user } = useAuth()
   const { t } = useI18n()
+  const { logs } = useApplicationLogs()
   const [isDragging, setIsDragging] = useState(false)
   const {
-    config, items, bulkRunning, bulkProgress, sendingBulk,
-    addFiles, removeItem, toggleSelect, toggleExpanded, updateItem,
-    analyzeAllPending, analyzeSingle, sendAllDone, sendSingleItem, clearAll,
-    upgradeOpen, setUpgradeOpen,
+    config,
+    items,
+    bulkRunning,
+    bulkProgress,
+    sendingBulk,
+    addFiles,
+    removeItem,
+    toggleSelect,
+    toggleExpanded,
+    updateItem,
+    analyzeAllPending,
+    analyzeSingle,
+    sendAllDone,
+    sendSingleItem,
+    clearAll,
+    setUpgradeOpen,
   } = useProcessing()
 
-  const handleDrop = useCallback(async (e: React.DragEvent) => {
-    e.preventDefault()
-    const files = Array.from(e.dataTransfer.files).filter(
-      (f) => f.type.startsWith('image/') || f.type === 'application/pdf'
-    )
-    if (files.length > 0) addFiles(files)
-  }, [addFiles])
+  const handleDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault()
+      setIsDragging(false)
+      const files = Array.from(event.dataTransfer.files).filter(
+        (file) => file.type.startsWith('image/') || file.type === 'application/pdf'
+      )
+      if (files.length > 0) addFiles(files)
+    },
+    [addFiles]
+  )
 
-  const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || [])
-    if (files.length > 0) addFiles(files)
-    e.target.value = ''
-  }, [addFiles])
+  const handleFileInput = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(event.target.files || [])
+      if (files.length > 0) addFiles(files)
+      event.target.value = ''
+    },
+    [addFiles]
+  )
 
-  if (!config) {
-    return (
-      <div className="space-y-8">
-        {/* Usage + Upload card skeletons */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-1.5 rounded-[2rem] bg-border/30">
-            <div className="rounded-[calc(2rem-0.375rem)] bg-card p-7 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] h-full">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <Skeleton className="w-9 h-9 rounded-xl" />
-                  <div className="space-y-2">
-                    <Skeleton className="h-3 w-28" />
-                    <Skeleton className="h-2 w-20" />
-                  </div>
-                </div>
-                <Skeleton className="h-3 w-12 rounded-full" />
-              </div>
-              <div className="flex justify-center gap-12">
-                <Skeleton className="w-20 h-20 rounded-full" />
-                <Skeleton className="w-20 h-20 rounded-full" />
-              </div>
-            </div>
-          </div>
+  const chartData = useMemo(() => {
+    const weekday = new Intl.DateTimeFormat('en', { weekday: 'short' })
+    return Array.from({ length: 7 }, (_, index) => {
+      const start = new Date()
+      start.setDate(start.getDate() - (6 - index))
+      start.setHours(0, 0, 0, 0)
+      const end = new Date(start)
+      end.setDate(start.getDate() + 1)
+      const inRange = logs.filter((log) => {
+        const time = new Date(log.sentAt).getTime()
+        return time >= start.getTime() && time < end.getTime()
+      })
+      return {
+        day: weekday.format(start),
+        applications: inRange.length,
+        approved: inRange.filter((log) => log.status === 'approved').length,
+      }
+    })
+  }, [logs])
 
-          <div className="p-1.5 rounded-[2rem] bg-border/30">
-            <div className="rounded-[calc(2rem-0.375rem)] bg-card p-8 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] h-full flex items-center justify-center">
-              <div className="flex flex-col items-center gap-4 text-center">
-                <Skeleton className="w-14 h-14 rounded-full" />
-                <Skeleton className="h-3 w-40" />
-                <Skeleton className="h-2 w-32" />
-              </div>
-            </div>
-          </div>
-        </div>
+  const stats = useMemo(() => {
+    const now = new Date()
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    const thisMonth = logs.filter((log) => new Date(log.sentAt) >= monthStart).length
+    const lastMonth = logs.filter((log) => {
+      const date = new Date(log.sentAt)
+      return date >= lastMonthStart && date < monthStart
+    }).length
+    const successful = logs.filter(
+      (log) => log.status === 'sent' || log.status === 'approved'
+    ).length
+    const successRate = logs.length ? Math.round((successful / logs.length) * 100) : 0
+    const trend =
+      lastMonth > 0
+        ? `${thisMonth >= lastMonth ? '+' : ''}${Math.round(((thisMonth - lastMonth) / lastMonth) * 100)}%`
+        : null
+    return { thisMonth, successRate, trend }
+  }, [logs])
 
-        {/* File list card skeletons */}
-        <div className="space-y-4">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className="p-1.5 rounded-[2rem] bg-border/30">
-              <div className="rounded-[calc(2rem-0.375rem)] bg-card overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
-                <div className="flex items-center gap-3 px-5 py-4">
-                  <Skeleton className="w-4 h-4 rounded" />
-                  <Skeleton className="h-3 w-48" />
-                  <Skeleton className="h-5 w-16 rounded-full ml-auto" />
-                  <Skeleton className="w-4 h-4 rounded" />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
+  if (!config) return <DashboardSkeleton />
 
-  const pendingCount = items.filter((i) => i.status === 'pending').length
-  const doneCount = items.filter((i) => i.status === 'done' && i.selected).length
-  const usageAnalyze = config?.usageAnalyze || 0
-  const usageSend = config?.usageSend || 0
-  const planLimitsMap: Record<string, { analyze: number; send: number }> = {
-    free: { analyze: 3, send: 3 },
-    basic: { analyze: 20, send: 20 },
-    starter: { analyze: 80, send: 80 },
-    pro: { analyze: Infinity, send: Infinity },
-  }
-  const limits = planLimitsMap[config.plan] || planLimitsMap.free
-  const isPro = config.plan === 'pro'
-  const analyzeLimit = limits.analyze
-  const sendLimit = limits.send
-
-  const inputClass = "w-full bg-surface border border-border rounded-xl px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-accent/40 transition-all duration-300"
+  const plan = config.plan
+  const pendingCount = items.filter((item) => item.status === 'pending').length
+  const doneCount = items.filter((item) => item.status === 'done' && item.selected).length
+  const firstName =
+    config.displayName?.split(' ')[0] ||
+    user?.displayName?.split(' ')[0] ||
+    user?.email?.split('@')[0] ||
+    'there'
 
   return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="p-1.5 rounded-[2rem] bg-border/30">
-          <div className="rounded-[calc(2rem-0.375rem)] bg-card p-7 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] h-full">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
-                  <span className="text-accent text-sm">∞</span>
-                </div>
-                <div>
-                  <h2 className="text-sm text-foreground font-medium">{t.dashboard.usageTitle}</h2>
-                  <p className="text-[10px] text-muted mt-0.5">
-                    {isPro ? t.dashboard.unlimitedAccess : t.dashboard.analyzesRemaining.replace('{count}', String(analyzeLimit - usageAnalyze))}
-                  </p>
-                </div>
-              </div>
-              {!isPro && (
-                <button
-                  onClick={() => setUpgradeOpen(true)}
-                  className="group flex items-center gap-1 text-xs text-accent hover:opacity-80 transition-all duration-300"
-                >
-                  {t.dashboard.upgrade}
-                  <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform duration-300" />
-                </button>
-              )}
-            </div>
-
-            <div className="flex justify-center gap-12">
-              <UsageCircle label={t.dashboard.usageAnalyze} used={usageAnalyze} total={analyzeLimit}
-                onUpgrade={() => !isPro && setUpgradeOpen(true)} />
-              <UsageCircle label={t.dashboard.usageSend} used={usageSend} total={sendLimit}
-                onUpgrade={() => !isPro && setUpgradeOpen(true)} />
-            </div>
-
-            {!isPro && (usageAnalyze >= analyzeLimit || usageSend >= sendLimit) && (
-              <div className="mt-6 p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-amber-400">{t.dashboard.limitReached}</p>
-                    <p className="text-[10px] text-muted mt-0.5">{t.dashboard.upgradeForUnlimited}</p>
-                  </div>
-                  <button onClick={() => setUpgradeOpen(true)}
-                    className="group flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber-500 text-background text-xs font-medium hover:opacity-90 transition-all duration-300 active:scale-[0.98]">
-                    {t.dashboard.upgrade}
-                    <ArrowRight size={12} weight="bold" className="group-hover:translate-x-0.5 transition-transform duration-300" />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+    <div className='flex flex-col gap-4 md:gap-6'>
+      <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+        <div>
+          <h2 className='text-2xl font-semibold tracking-tight'>Welcome back, {firstName}</h2>
+          <p className='text-sm text-muted-foreground'>
+            {items.length > 0
+              ? `${items.length} brochure${items.length > 1 ? 's' : ''} in your queue — review and send when ready.`
+              : 'Upload a job brochure to generate an application with AI.'}
+          </p>
         </div>
-
-        <div
-          onDrop={handleDrop}
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
-          onDragLeave={() => setIsDragging(false)}
-          onClick={() => document.getElementById('file-input')?.click()}
-          className={`
-            p-1.5 rounded-[2rem] transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)]
-            ${isDragging
-              ? 'bg-accent/30 scale-[0.99]'
-              : 'bg-border/30 hover:bg-border/50'
-            }
-          `}
-        >
-          <div className={`rounded-[calc(2rem-0.375rem)] bg-card p-8 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] h-full flex items-center justify-center cursor-pointer`}>
-            <div className="flex flex-col items-center gap-4 text-center">
-              <div className={`w-14 h-14 rounded-full border-2 border-dashed flex items-center justify-center transition-all duration-300 ${isDragging ? 'border-accent text-accent' : 'border-border text-muted'}`}>
-                <Upload size={24} />
-              </div>
-              <div>
-                <p className="text-sm text-foreground font-medium">
-                  {isDragging ? t.dashboard.dropzoneActive : t.dashboard.dropzone}
-                </p>
-                <p className="text-[11px] text-muted mt-1">{t.dashboard.dropzoneMulti}</p>
-              </div>
-            </div>
-            <input id="file-input" type="file" multiple accept=".pdf,image/*" className="hidden" onChange={handleFileInput} />
-          </div>
+        <div className='flex items-center gap-2'>
+          <Button variant='outline' asChild>
+            <Link href='/dashboard/history'>
+              <Activity className='size-4' /> Applications
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href='/dashboard/cv-builder'>
+              <FileText className='size-4' /> CV Builder
+            </Link>
+          </Button>
         </div>
       </div>
 
-      {items.length > 0 && (
-        <div className="mt-8 flex items-center gap-3 flex-wrap">
-          <button
-            onClick={analyzeAllPending}
-            disabled={bulkRunning || pendingCount === 0}
-            className="group flex items-center gap-2 bg-accent text-background rounded-full px-5 py-3 text-sm font-medium hover:opacity-90 disabled:opacity-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
-          >
-            {bulkRunning ? (
-              <><Skeleton className="w-4 h-4 rounded-full" /><span>{t.dashboard.analyzeProgress.replace('{done}', String(bulkProgress.done)).replace('{total}', String(bulkProgress.total))}</span></>
-            ) : (
-              <><span>{t.dashboard.analyzeFiles.replace('{count}', String(pendingCount))}</span><ArrowRight size={16} weight="bold" /></>
-            )}
-          </button>
-          <button
-            onClick={sendAllDone}
-            disabled={sendingBulk || doneCount === 0}
-            className="group flex items-center gap-2 border border-border text-foreground rounded-full px-5 py-3 text-sm font-medium hover:bg-subtle disabled:opacity-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
-          >
-            {sendingBulk ? (
-              <><Skeleton className="w-4 h-4 rounded-full" /><span>{t.dashboard.sending}</span></>
-            ) : (
-              <><PaperPlaneTilt size={16} /><span>{t.dashboard.sendSelected.replace('{count}', String(doneCount))}</span></>
-            )}
-          </button>
-          <button onClick={clearAll} className="text-muted hover:text-foreground text-xs transition-colors duration-300">
-            {t.dashboard.clearAll}
-          </button>
-          <span className="text-xs text-muted ml-auto">
-            {t.dashboard.fileCount.replace('{count}', String(items.length))}
-          </span>
+      <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
+        <StatCard
+          label='Total applications'
+          value={formatNumber(logs.length)}
+          hint='All applications sent so far'
+          icon={Send}
+          accent
+        />
+        <StatCard
+          label='This month'
+          value={formatNumber(stats.thisMonth)}
+          hint='Applications sent this month'
+          icon={Activity}
+          trend={stats.trend}
+        />
+        <StatCard
+          label='Success rate'
+          value={`${stats.successRate}%`}
+          hint='Sent or approved applications'
+          icon={CheckCircle2}
+        />
+        <StatCard
+          label='In queue'
+          value={formatNumber(items.length)}
+          hint={`${pendingCount} pending · ${doneCount} ready to send`}
+          icon={Inbox}
+        />
+      </div>
+
+      <div className='grid gap-4 lg:grid-cols-7'>
+        <div className='lg:col-span-4'>
+          <ActivityChart data={chartData} />
         </div>
-      )}
-
-      {items.length === 0 ? (
-        <div className="mt-8 text-center py-16">
-          <div className="w-16 h-16 mx-auto rounded-full bg-subtle flex items-center justify-center mb-4">
-            <FileText size={28} className="text-muted" />
-          </div>
-          <p className="text-sm text-muted">{t.dashboard.noFiles}</p>
-          <p className="text-[11px] text-muted/70 mt-1">{t.dashboard.uploadPrompt}</p>
+        <div className='lg:col-span-3'>
+          <UsageCard
+            analyzeUsed={config.usageAnalyze || 0}
+            sendUsed={config.usageSend || 0}
+            plan={plan}
+            onUpgrade={() => setUpgradeOpen(true)}
+          />
         </div>
-      ) : (
-        <div className="mt-8 space-y-4">
-          {items.map((item) => (
-            <div key={item.id} className="p-1.5 rounded-[2rem] bg-border/30">
-              <div className="rounded-[calc(2rem-0.375rem)] bg-card overflow-hidden shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
-                <div className="flex items-center gap-3 px-5 py-4 cursor-pointer hover:bg-subtle/40 transition-colors duration-300"
-                  onClick={() => toggleExpanded(item.id)}>
-                  <input type="checkbox" checked={item.selected}
-                    onChange={() => toggleSelect(item.id)} onClick={(e) => e.stopPropagation()}
-                    className="rounded border-border bg-surface accent-[var(--accent)] w-4 h-4" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-foreground truncate">{item.file.name}</span>
-                      <FileStatusBadge status={item.status} isAnalyzing={item.status === 'analyzing'} isSending={item.sending} />
-                    </div>
-                    {item.error && <p className="text-[10px] text-red-400 mt-1">{item.error}</p>}
-                  </div>
-                  <button onClick={(e) => { e.stopPropagation(); removeItem(item.id) }}
-                    className="text-muted hover:text-red-400 transition-colors duration-300 p-1">
-                    <X size={16} />
-                  </button>
-                </div>
+      </div>
 
-                {item.expanded && item.status === 'done' && (
-                  <div className="border-t border-border p-5 space-y-4 bg-subtle/30">
-                    <div className="grid gap-4">
-                      <div>
-                        <label className="text-[10px] uppercase tracking-wider text-muted block mb-1.5">{t.dashboard.subjek}</label>
-                        <GrowableTextarea value={item.editable.subjek}
-                          onChange={(v) => updateItem(item.id, { editable: { ...item.editable, subjek: v } })}
-                          className={inputClass} placeholder={t.dashboard.placeholderSubject} />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-[10px] uppercase tracking-wider text-muted block mb-1.5">{t.dashboard.perusahaan}</label>
-                          <input value={item.editable.nama_perusahaan}
-                            onChange={(e) => updateItem(item.id, { editable: { ...item.editable, nama_perusahaan: e.target.value } })}
-                            className={inputClass} />
-                        </div>
-                        <div>
-                          <label className="text-[10px] uppercase tracking-wider text-muted block mb-1.5">{t.dashboard.posisi}</label>
-                          <input value={item.editable.posisi}
-                            onChange={(e) => updateItem(item.id, { editable: { ...item.editable, posisi: e.target.value } })}
-                            className={inputClass} />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-[10px] uppercase tracking-wider text-muted block mb-1.5">{t.dashboard.email}</label>
-                        <input value={item.editable.email}
-                          onChange={(e) => updateItem(item.id, { editable: { ...item.editable, email: e.target.value } })}
-                          className={inputClass} type="email" placeholder={t.dashboard.placeholderEmail} />
-                      </div>
-                      <div>
-                        <label className="text-[10px] uppercase tracking-wider text-muted block mb-1.5">{t.dashboard.intro}</label>
-                        <GrowableTextarea value={item.editable.intro}
-                          onChange={(v) => updateItem(item.id, { editable: { ...item.editable, intro: v } })}
-                          className={inputClass} placeholder={t.dashboard.placeholderIntro} />
-                      </div>
-                      <div>
-                        <label className="text-[10px] uppercase tracking-wider text-muted block mb-1.5">{t.dashboard.alasan}</label>
-                        <GrowableTextarea value={item.editable.alasan}
-                          onChange={(v) => updateItem(item.id, { editable: { ...item.editable, alasan: v } })}
-                          className={inputClass} placeholder={t.dashboard.placeholderAlasan} />
-                      </div>
-                      <div>
-                        <label className="text-[10px] uppercase tracking-wider text-muted block mb-1.5">{t.dashboard.penutup}</label>
-                        <GrowableTextarea value={item.editable.penutup}
-                          onChange={(v) => updateItem(item.id, { editable: { ...item.editable, penutup: v } })}
-                          className={inputClass} placeholder={t.dashboard.placeholderPenutup} />
-                      </div>
-                    </div>
-                    <div className="pt-4 border-t border-border flex justify-end">
-                      <button onClick={() => sendSingleItem(item)}
-                        disabled={item.sending || !config?.smtpPass || !config?.cvPath || !item.editable.email}
-                        className="group flex items-center gap-2 text-sm bg-accent text-background rounded-full px-5 py-2.5 font-medium hover:opacity-90 disabled:opacity-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
-                      >
-                        {item.sending ? <><Skeleton className="w-4 h-4 rounded-full" /><span>{t.dashboard.sending}</span></>
-                          : <><span>{t.dashboard.sendEmail}</span><PaperPlaneTilt size={16} weight="bold" /></>}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {item.expanded && item.status === 'error' && (
-                  <div className="border-t border-border p-5 space-y-3">
-                    <div className="flex items-center gap-2 text-red-400">
-                      <WarningCircle size={20} />
-                      <p className="text-sm">{item.error || t.dashboard.analysisFailed}</p>
-                    </div>
-                    <button onClick={() => analyzeSingle(item)}
-                      className="text-sm bg-subtle text-foreground rounded-full px-5 py-2.5 font-medium hover:bg-border transition-colors duration-300 border border-border"
-                    >
-                      {t.dashboard.retryAnalysis}
-                    </button>
-                  </div>
-                )}
-              </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className='flex items-center gap-2 text-base'>
+            <Upload className='size-4 text-primary' />
+            Upload brochures
+          </CardTitle>
+          <CardDescription>
+            Drop job brochure images or PDFs. AI extracts the company, role, and writes your email.
+          </CardDescription>
+          <CardAction>
+            <Badge variant='outline'>{items.length} file{items.length === 1 ? '' : 's'}</Badge>
+          </CardAction>
+        </CardHeader>
+        <CardContent className='space-y-4'>
+          <div
+            role='button'
+            tabIndex={0}
+            onDrop={handleDrop}
+            onDragOver={(event) => {
+              event.preventDefault()
+              setIsDragging(true)
+            }}
+            onDragLeave={() => setIsDragging(false)}
+            onClick={() => document.getElementById('brochure-input')?.click()}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                document.getElementById('brochure-input')?.click()
+              }
+            }}
+            className={cn(
+              'flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed px-6 py-10 text-center transition-colors',
+              isDragging
+                ? 'border-primary bg-primary/5'
+                : 'border-border hover:border-primary/40 hover:bg-muted/40'
+            )}
+          >
+            <div
+              className={cn(
+                'flex size-12 items-center justify-center rounded-full border bg-background',
+                isDragging && 'border-primary text-primary'
+              )}
+            >
+              <Upload className={cn('size-5', isDragging && 'text-primary')} />
             </div>
-          ))}
+            <div>
+              <p className='text-sm font-medium'>
+                {isDragging ? t.dashboard.dropzoneActive : t.dashboard.dropzone}
+              </p>
+              <p className='mt-1 text-xs text-muted-foreground'>{t.dashboard.dropzoneMulti}</p>
+            </div>
+            <input
+              id='brochure-input'
+              type='file'
+              multiple
+              accept='.pdf,image/*'
+              className='hidden'
+              onChange={handleFileInput}
+            />
+          </div>
+
+          {items.length > 0 ? (
+            <>
+              <div className='flex flex-wrap items-center gap-2'>
+                <Button onClick={analyzeAllPending} disabled={bulkRunning || pendingCount === 0}>
+                  {bulkRunning ? (
+                    <>
+                      <Loader2 className='size-4 animate-spin' />
+                      {t.dashboard.analyzeProgress
+                        .replace('{done}', String(bulkProgress.done))
+                        .replace('{total}', String(bulkProgress.total))}
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className='size-4' />
+                      {t.dashboard.analyzeFiles.replace('{count}', String(pendingCount))}
+                      <ArrowRight className='size-4' />
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant='outline'
+                  onClick={sendAllDone}
+                  disabled={sendingBulk || doneCount === 0}
+                >
+                  {sendingBulk ? (
+                    <>
+                      <Loader2 className='size-4 animate-spin' />
+                      {t.dashboard.sending}
+                    </>
+                  ) : (
+                    <>
+                      <Send className='size-4' />
+                      {t.dashboard.sendSelected.replace('{count}', String(doneCount))}
+                    </>
+                  )}
+                </Button>
+                <Button variant='ghost' onClick={clearAll} className='text-muted-foreground'>
+                  {t.dashboard.clearAll}
+                </Button>
+                <span className='ms-auto text-xs text-muted-foreground'>
+                  {t.dashboard.fileCount.replace('{count}', String(items.length))}
+                </span>
+              </div>
+
+              <div className='space-y-2'>
+                {items.map((item) => (
+                  <div
+                    key={item.id}
+                    className={cn(
+                      'rounded-xl border bg-card transition-colors',
+                      item.selected && 'border-primary/30'
+                    )}
+                  >
+                    <div className='flex items-center gap-3 p-3'>
+                      <Checkbox
+                        checked={item.selected}
+                        onCheckedChange={() => toggleSelect(item.id)}
+                        aria-label={`Select ${item.file.name}`}
+                        onClick={(event) => event.stopPropagation()}
+                      />
+                      <button
+                        type='button'
+                        onClick={() => toggleExpanded(item.id)}
+                        className='flex min-w-0 flex-1 items-center gap-3 text-start'
+                      >
+                        <div className='flex size-9 shrink-0 items-center justify-center rounded-lg border bg-muted/50'>
+                          <FileText className='size-4 text-muted-foreground' />
+                        </div>
+                        <div className='min-w-0 flex-1'>
+                          <div className='flex flex-wrap items-center gap-2'>
+                            <span className='max-w-[220px] truncate text-sm font-medium sm:max-w-md'>
+                              {item.file.name}
+                            </span>
+                            <UploadStatusBadge item={item} />
+                          </div>
+                          <p className='mt-0.5 truncate text-xs text-muted-foreground'>
+                            {item.error ||
+                              (item.status === 'done' || item.status === 'sent'
+                                ? `${item.editable.nama_perusahaan || 'Company'} · ${item.editable.posisi || 'Position'}`
+                                : `${(item.file.size / 1024 / 1024).toFixed(2)} MB · ${
+                                    item.file.type || 'document'
+                                  }`)}
+                          </p>
+                        </div>
+                        <ChevronDown
+                          className={cn(
+                            'size-4 shrink-0 text-muted-foreground transition-transform',
+                            item.expanded && 'rotate-180'
+                          )}
+                        />
+                      </button>
+                      <Button
+                        variant='ghost'
+                        size='icon'
+                        className='size-8 shrink-0 text-muted-foreground hover:text-destructive'
+                        onClick={() => removeItem(item.id)}
+                      >
+                        <X className='size-4' />
+                        <span className='sr-only'>Remove file</span>
+                      </Button>
+                    </div>
+
+                    <Collapsible open={item.expanded}>
+                      <CollapsibleContent className='CollapsibleContent'>
+                        {item.expanded && item.status === 'done' ? (
+                          <div className='space-y-4 border-t bg-muted/20 p-4'>
+                            <div className='grid gap-3'>
+                              <div className='space-y-1.5'>
+                                <Label htmlFor={`subject-${item.id}`} className='text-xs'>
+                                  {t.dashboard.subjek}
+                                </Label>
+                                <GrowableTextarea
+                                  value={item.editable.subjek}
+                                  onChange={(value) =>
+                                    updateItem(item.id, {
+                                      editable: { ...item.editable, subjek: value },
+                                    })
+                                  }
+                                  placeholder={t.dashboard.placeholderSubject}
+                                />
+                              </div>
+                              <div className='grid gap-3 sm:grid-cols-2'>
+                                <div className='space-y-1.5'>
+                                  <Label htmlFor={`company-${item.id}`} className='text-xs'>
+                                    {t.dashboard.perusahaan}
+                                  </Label>
+                                  <Input
+                                    id={`company-${item.id}`}
+                                    value={item.editable.nama_perusahaan}
+                                    onChange={(event) =>
+                                      updateItem(item.id, {
+                                        editable: {
+                                          ...item.editable,
+                                          nama_perusahaan: event.target.value,
+                                        },
+                                      })
+                                    }
+                                  />
+                                </div>
+                                <div className='space-y-1.5'>
+                                  <Label htmlFor={`position-${item.id}`} className='text-xs'>
+                                    {t.dashboard.posisi}
+                                  </Label>
+                                  <Input
+                                    id={`position-${item.id}`}
+                                    value={item.editable.posisi}
+                                    onChange={(event) =>
+                                      updateItem(item.id, {
+                                        editable: {
+                                          ...item.editable,
+                                          posisi: event.target.value,
+                                        },
+                                      })
+                                    }
+                                  />
+                                </div>
+                              </div>
+                              <div className='space-y-1.5'>
+                                <Label htmlFor={`email-${item.id}`} className='text-xs'>
+                                  {t.dashboard.email}
+                                </Label>
+                                <Input
+                                  id={`email-${item.id}`}
+                                  type='email'
+                                  value={item.editable.email}
+                                  onChange={(event) =>
+                                    updateItem(item.id, {
+                                      editable: { ...item.editable, email: event.target.value },
+                                    })
+                                  }
+                                  placeholder={t.dashboard.placeholderEmail}
+                                />
+                              </div>
+                              <div className='space-y-1.5'>
+                                <Label className='text-xs'>{t.dashboard.intro}</Label>
+                                <GrowableTextarea
+                                  value={item.editable.intro}
+                                  onChange={(value) =>
+                                    updateItem(item.id, {
+                                      editable: { ...item.editable, intro: value },
+                                    })
+                                  }
+                                  placeholder={t.dashboard.placeholderIntro}
+                                />
+                              </div>
+                              <div className='space-y-1.5'>
+                                <Label className='text-xs'>{t.dashboard.alasan}</Label>
+                                <GrowableTextarea
+                                  value={item.editable.alasan}
+                                  onChange={(value) =>
+                                    updateItem(item.id, {
+                                      editable: { ...item.editable, alasan: value },
+                                    })
+                                  }
+                                  placeholder={t.dashboard.placeholderAlasan}
+                                />
+                              </div>
+                              <div className='space-y-1.5'>
+                                <Label className='text-xs'>{t.dashboard.penutup}</Label>
+                                <GrowableTextarea
+                                  value={item.editable.penutup}
+                                  onChange={(value) =>
+                                    updateItem(item.id, {
+                                      editable: { ...item.editable, penutup: value },
+                                    })
+                                  }
+                                  placeholder={t.dashboard.placeholderPenutup}
+                                />
+                              </div>
+                            </div>
+
+                            <div className='flex flex-wrap items-center justify-between gap-2 border-t pt-3'>
+                              {!config.smtpPass || !config.cvPath ? (
+                                <p className='text-xs text-amber-600 dark:text-amber-400'>
+                                  Complete SMTP and CV setup in{' '}
+                                  <Link href='/dashboard/settings' className='underline'>
+                                    settings
+                                  </Link>{' '}
+                                  before sending.
+                                </p>
+                              ) : (
+                                <span />
+                              )}
+                              <Button
+                                size='sm'
+                                onClick={() => void sendSingleItem(item)}
+                                disabled={
+                                  item.sending ||
+                                  !config.smtpPass ||
+                                  !config.cvPath ||
+                                  !item.editable.email
+                                }
+                              >
+                                {item.sending ? (
+                                  <Loader2 className='size-4 animate-spin' />
+                                ) : (
+                                  <Send className='size-4' />
+                                )}
+                                {t.dashboard.sendEmail}
+                              </Button>
+                            </div>
+                          </div>
+                        ) : null}
+
+                        {item.expanded && item.status === 'error' ? (
+                          <div className='space-y-3 border-t bg-destructive/5 p-4'>
+                            <div className='flex items-start gap-2 text-sm text-destructive'>
+                              <AlertCircle className='mt-0.5 size-4 shrink-0' />
+                              <p>{item.error || t.dashboard.analysisFailed}</p>
+                            </div>
+                            <Button
+                              variant='outline'
+                              size='sm'
+                              onClick={() => void analyzeSingle(item)}
+                            >
+                              {t.dashboard.retryAnalysis}
+                            </Button>
+                          </div>
+                        ) : null}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className='flex flex-col items-center justify-center gap-2 py-10 text-center'>
+              <div className='flex size-12 items-center justify-center rounded-full bg-muted'>
+                <Inbox className='size-5 text-muted-foreground' />
+              </div>
+              <p className='text-sm font-medium'>{t.dashboard.noFiles}</p>
+              <p className='text-xs text-muted-foreground'>{t.dashboard.uploadPrompt}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className='text-base'>Recent applications</CardTitle>
+          <CardDescription>Your latest sent applications and their status.</CardDescription>
+          <CardAction>
+            <Button variant='ghost' size='sm' asChild>
+              <Link href='/dashboard/history'>
+                View all <ArrowRight className='size-3.5' />
+              </Link>
+            </Button>
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          {logs.length === 0 ? (
+            <div className='flex flex-col items-center justify-center gap-2 py-8 text-center'>
+              <div className='flex size-10 items-center justify-center rounded-full bg-muted'>
+                <Send className='size-4 text-muted-foreground' />
+              </div>
+              <p className='text-sm font-medium'>No applications yet</p>
+              <p className='text-xs text-muted-foreground'>
+                Analyze a brochure and send your first application.
+              </p>
+            </div>
+          ) : (
+            <div className='divide-y'>
+              {logs.slice(0, 5).map((log) => (
+                <div
+                  key={log.id}
+                  className='flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0'
+                >
+                  <div className='flex size-9 shrink-0 items-center justify-center rounded-lg border bg-muted/40 text-xs font-semibold uppercase'>
+                    {log.perusahaan?.slice(0, 2) || '—'}
+                  </div>
+                  <div className='min-w-0 flex-1'>
+                    <p className='truncate text-sm font-medium'>{log.perusahaan || 'Unknown company'}</p>
+                    <p className='truncate text-xs text-muted-foreground'>
+                      {log.posisi || 'Position'} · {log.email || 'No recipient'}
+                    </p>
+                  </div>
+                  <StatusBadge status={log.status} />
+                  <span className='w-full text-xs text-muted-foreground sm:w-auto'>
+                    {formatDate(log.sentAt)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className='space-y-6'>
+      <div className='flex items-center justify-between gap-4'>
+        <div className='space-y-2'>
+          <div className='h-8 w-64 animate-pulse rounded-md bg-muted' />
+          <div className='h-4 w-80 animate-pulse rounded-md bg-muted' />
         </div>
-      )}
-    </>
+        <div className='h-9 w-40 animate-pulse rounded-md bg-muted' />
+      </div>
+      <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div key={index} className='h-32 animate-pulse rounded-xl bg-muted' />
+        ))}
+      </div>
+      <div className='grid gap-4 lg:grid-cols-7'>
+        <div className='h-80 animate-pulse rounded-xl bg-muted lg:col-span-4' />
+        <div className='h-80 animate-pulse rounded-xl bg-muted lg:col-span-3' />
+      </div>
+      <div className='h-64 animate-pulse rounded-xl bg-muted' />
+    </div>
   )
 }

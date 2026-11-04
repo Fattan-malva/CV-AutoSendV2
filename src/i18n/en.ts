@@ -179,6 +179,11 @@ const en = {
     upgradeBtn: 'Upgrade Now',
     logout: 'Logout',
     noFiles: 'No brochures uploaded yet',
+    workspace: 'Workspace',
+    resources: 'Resources',
+    proUnlimited: 'Pro — unlimited',
+    analysesLeftShort: '{remaining}/{limit} analyses left',
+    analysesLeftCycle: '{count} analyses left this cycle.',
   },
   cvBuilder: {
     title: 'CV Builder',

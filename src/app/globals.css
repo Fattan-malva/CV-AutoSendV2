@@ -1,76 +1,241 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-@import "@fontsource/outfit/300.css";
-@import "@fontsource/outfit/400.css";
-@import "@fontsource/outfit/500.css";
-@import "@fontsource/outfit/600.css";
-@import "@fontsource/outfit/700.css";
+@custom-variant dark (&:is(.dark *));
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-accent: var(--accent);
-  --color-subtle: var(--subtle);
-  --color-muted: var(--muted);
-  --color-border: var(--border);
-  --color-surface: var(--surface);
-  --color-card: var(--card);
-  --color-card-hover: var(--card-hover);
-  --font-sans: var(--font-outfit);
-  --font-serif: var(--font-plus-jakarta-sans);
-}
+/* =========================================================
+   Ceefy theme tokens
+   Dark is the default. Add `.dark` to <html> for dark mode
+   and `data-theme="light"` for the light palette.
+   ========================================================= */
 
-:root {
-  --background: #030303;
-  --foreground: #FFFFFF;
-  --accent: #6366F1;
-  --subtle: #111111;
-  --muted: rgba(255, 255, 255, 0.5);
-  --border: rgba(255, 255, 255, 0.1);
-  --surface: rgba(255, 255, 255, 0.03);
-  --card: rgba(255, 255, 255, 0.03);
+:root,
+.landing-root {
+  --radius: 0.625rem;
+
+  --background: #050506;
+  --foreground: #fafafa;
+
+  --card: #0b0b0f;
+  --card-foreground: #fafafa;
+  --popover: #111116;
+  --popover-foreground: #fafafa;
+
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+  --secondary: #17171d;
+  --secondary-foreground: #fafafa;
+
+  --muted: #131318;
+  --muted-foreground: #9b9ba8;
+
+  --accent: #1c1c24;
+  --accent-foreground: #fafafa;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: #6366f1;
+
+  --chart-1: #6366f1;
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #0ea5e9;
+  --chart-5: #f43f5e;
+
+  --sidebar: #07070a;
+  --sidebar-foreground: #c6c6d0;
+  --sidebar-primary: #6366f1;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #17171e;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: #6366f1;
+
+  /* Landing page / legacy aliases */
+  --brand: #6366f1;
+  --brand-foreground: #ffffff;
+  --subtle: #141419;
+  --surface: rgba(255, 255, 255, 0.025);
   --card-hover: rgba(255, 255, 255, 0.06);
+  --overlay: rgba(3, 3, 3, 0.72);
 }
 
 [data-theme="light"] {
-  --background: #F6F6F4;
-  --foreground: #0A0A0A;
-  --accent: #4F46E5;
-  --subtle: #EEEEEA;
-  --muted: rgba(0, 0, 0, 0.5);
-  --border: rgba(0, 0, 0, 0.08);
+  --background: #f7f7f5;
+  --foreground: #0a0a0a;
+
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+  --secondary: #f0f0ed;
+  --secondary-foreground: #111114;
+
+  --muted: #f0f0ed;
+  --muted-foreground: #6b6b76;
+
+  --accent: #ececea;
+  --accent-foreground: #111114;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  --border: oklch(0 0 0 / 9%);
+  --input: oklch(0 0 0 / 12%);
+  --ring: #4f46e5;
+
+  --chart-1: #4f46e5;
+  --chart-2: #059669;
+  --chart-3: #d97706;
+  --chart-4: #0284c7;
+  --chart-5: #e11d48;
+
+  --sidebar: #fbfbf9;
+  --sidebar-foreground: #3f3f46;
+  --sidebar-primary: #4f46e5;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f0f0ed;
+  --sidebar-accent-foreground: #111114;
+  --sidebar-border: oklch(0 0 0 / 8%);
+  --sidebar-ring: #4f46e5;
+
+  --brand: #4f46e5;
+  --brand-foreground: #ffffff;
+  --subtle: #eeeeea;
   --surface: rgba(255, 255, 255, 0.7);
-  --card: #FFFFFF;
-  --card-hover: #F0F0EC;
+  --card-hover: #f0f0ec;
+  --overlay: rgba(247, 247, 245, 0.72);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans);
-  overflow-x: hidden;
-  transition: background-color 0.7s cubic-bezier(0.32, 0.72, 0, 1), color 0.7s cubic-bezier(0.32, 0.72, 0, 1);
+.dark {
+  color-scheme: dark;
 }
 
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 50;
-  opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 256px 256px;
+@theme inline {
+  --font-sans: var(--font-outfit), "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-plus-jakarta-sans), "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 10px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Landing page aliases */
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-subtle: var(--subtle);
+  --color-surface: var(--surface);
+  --color-card-hover: var(--card-hover);
+  --color-overlay: var(--overlay);
 }
 
-[data-theme="light"] body::after {
-  opacity: 0.025;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  html {
+    @apply overflow-x-hidden;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply min-h-svh w-full bg-background font-sans text-foreground antialiased;
+    overflow-x: hidden;
+  }
+
+  /* The landing page is always dark, even when the dashboard is in light mode. */
+  html:has(.landing-root) {
+    color-scheme: dark;
+    background-color: #050506;
+  }
+
+  html:has(.landing-root) body {
+    background-color: #050506;
+    color: #fafafa;
+  }
+
+  /* Override Radix scroll locking for sticky headers */
+  body[data-scroll-locked] {
+    overflow: unset !important;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  /* Prevent focus zoom on mobile devices */
+  @media screen and (max-width: 767px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
 }
 
-::-webkit-scrollbar {
-  display: none;
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
 }
+
+@utility no-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@utility faded-bottom {
+  @apply after:pointer-events-none after:absolute after:inset-s-0 after:bottom-0 after:hidden after:h-32 after:w-full after:rounded-b-2xl after:bg-[linear-gradient(180deg,transparent_10%,var(--background)_70%)] md:after:block;
+}
+
+/* =========================================================
+   Landing page motion + texture helpers
+   ========================================================= */
 
 @keyframes scan {
   0% {
@@ -104,12 +269,14 @@ body::after {
 @keyframes reveal-up {
   from {
     opacity: 0;
-    transform: translateY(32px) blur(4px);
+    transform: translateY(32px);
+    filter: blur(4px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0) blur(0);
+    transform: translateY(0);
+    filter: blur(0);
   }
 }
 
@@ -203,7 +370,7 @@ body::after {
   position: absolute;
   border-radius: 9999px;
   filter: blur(80px);
-  opacity: 0.10;
+  opacity: 0.1;
   pointer-events: none;
   z-index: 0;
 }
@@ -215,11 +382,6 @@ body::after {
 .gsap-reveal {
   opacity: 0;
   transform: translateY(40px);
-}
-
-html.lenis,
-html.lenis body {
-  height: auto;
 }
 
 .pin-shadow {
@@ -253,5 +415,38 @@ html.lenis body {
 
   100% {
     transform: translateY(480px);
+  }
+}
+
+/* Collapsible animation (shadcn-admin) */
+.CollapsibleContent {
+  overflow: hidden;
+}
+
+.CollapsibleContent[data-state="open"] {
+  animation: slideDown 300ms ease-out;
+}
+
+.CollapsibleContent[data-state="closed"] {
+  animation: slideUp 300ms ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    height: 0;
+  }
+
+  to {
+    height: var(--radix-collapsible-content-height);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    height: var(--radix-collapsible-content-height);
+  }
+
+  to {
+    height: 0;
   }
 }

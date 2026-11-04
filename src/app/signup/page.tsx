@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
-import { Spinner } from 'phosphor-react'
 
 export default function SignupPage() {
   const { user, loading } = useAuth()
@@ -19,8 +19,8 @@ export default function SignupPage() {
   }, [user, loading, router])
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <Spinner size={24} className="text-accent animate-spin" />
+    <div className='flex min-h-svh items-center justify-center'>
+      <Loader2 className='size-5 animate-spin text-muted-foreground' />
     </div>
   )
 }

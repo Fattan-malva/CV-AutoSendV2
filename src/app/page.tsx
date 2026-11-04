@@ -10,11 +10,9 @@ import Pricing from '@/components/landing/Pricing'
 import FreeDemo from '@/components/landing/FreeDemo'
 import Footer from '@/components/landing/Footer'
 import AuthModal from '@/components/landing/AuthModal'
-import ConfirmLogoutModal from '@/components/dashboard/ConfirmLogoutModal'
 
 export default function Home() {
   const [authOpen, setAuthOpen] = useState(false)
-  const [logoutOpen, setLogoutOpen] = useState(false)
 
   const faqLd = {
     '@context': 'https://schema.org',
@@ -106,18 +104,19 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(howToLd) }}
       />
-      <Navbar onOpenAuth={() => setAuthOpen(true)} onOpenLogout={() => setLogoutOpen(true)} />
-      <main className="overflow-x-hidden w-full max-w-full">
-        <Hero onOpenAuth={() => setAuthOpen(true)} />
-        <Features />
-        <DesireSection />
-        <Marquee />
-        <Pricing onOpenAuth={() => setAuthOpen(true)} />
-        <FreeDemo onOpenAuth={() => setAuthOpen(true)} />
-      </main>
-      <Footer />
+      <div className='landing-root dark bg-background text-foreground'>
+        <Navbar onOpenAuth={() => setAuthOpen(true)} />
+        <main className="overflow-x-hidden w-full max-w-full">
+          <Hero onOpenAuth={() => setAuthOpen(true)} />
+          <Features />
+          <DesireSection />
+          <Marquee />
+          <Pricing onOpenAuth={() => setAuthOpen(true)} />
+          <FreeDemo onOpenAuth={() => setAuthOpen(true)} />
+        </main>
+        <Footer />
+      </div>
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
-      <ConfirmLogoutModal open={logoutOpen} onClose={() => setLogoutOpen(false)} />
     </>
   )
 }

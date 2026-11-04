@@ -1,40 +1,34 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useAuth } from '@/lib/auth-context'
 import SettingsPage from '@/components/dashboard/SettingsPage'
-import Skeleton from '@/components/ui/Skeleton'
-import type { UserConfig } from '@/types'
+import { useProcessing } from '@/lib/processing-context'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function SettingsRoute() {
-  const { user } = useAuth()
-  const [config, setConfig] = useState<UserConfig | null>(null)
-
-  useEffect(() => {
-    if (!user) return
-    user.getIdToken().then((token) => fetch('/api/user-config', { headers: { Authorization: `Bearer ${token}` } }))
-      .then((res) => res.json()).then((data) => setConfig(data as UserConfig)).catch(() => {})
-  }, [user])
+  const { config, updateConfig } = useProcessing()
 
   if (!config) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="flex items-center gap-3 mb-6">
-          <Skeleton className="w-8 h-8 rounded-lg" />
-          <div className="space-y-2">
-            <Skeleton className="h-5 w-24" />
-            <Skeleton className="h-3 w-40" />
-          </div>
+      <div className='space-y-6'>
+        <div className='space-y-2'>
+          <Skeleton className='h-8 w-40' />
+          <Skeleton className='h-4 w-80' />
         </div>
-        <div className="border border-zinc-800 rounded-2xl p-6 space-y-5">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-12 w-full rounded-lg" />
-          ))}
-          <Skeleton className="h-10 w-full rounded-lg" />
+        <div className='grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]'>
+          <div className='space-y-2'>
+            {Array.from({ length: 4 }).map((_, index) => (
+              <Skeleton key={index} className='h-12 w-full rounded-lg' />
+            ))}
+          </div>
+          <div className='space-y-4 rounded-xl border p-6'>
+            {Array.from({ length: 6 }).map((_, index) => (
+              <Skeleton key={index} className='h-12 w-full rounded-lg' />
+            ))}
+          </div>
         </div>
       </div>
     )
   }
 
-  return <SettingsPage config={config} onConfigUpdate={setConfig} />
+  return <SettingsPage config={config} onConfigUpdate={updateConfig} />
 }

@@ -19,7 +19,14 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const existing = await getUserData(uid)
     if (!existing) await upsertUserData(uid, body)
-    else await upsertUserData(uid, { email: body.email, displayName: body.displayName })
+    else {
+      const updates: Record<string, unknown> = {}
+      if (body.email !== undefined) updates.email = body.email
+      if (body.displayName !== undefined) updates.displayName = body.displayName
+      if (body.usageAnalyze !== undefined) updates.usageAnalyze = Number(body.usageAnalyze)
+      if (body.usageSend !== undefined) updates.usageSend = Number(body.usageSend)
+      await upsertUserData(uid, updates)
+    }
     return NextResponse.json({ success: true })
   } catch (e) {
     if (e instanceof AuthError) return NextResponse.json({ error: e.message }, { status: e.status })

@@ -74,9 +74,9 @@ export default function Hero({ onOpenAuth }: HeroProps) {
     >
       {/* Ethereal Glass Background Mesh (Fixed/GPU Safe) */}
       <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-accent/10 blur-[160px] mix-blend-screen will-change-transform" />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-accent/5 blur-[160px] mix-blend-screen will-change-transform" />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03]" />
+        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-brand/10 blur-[160px] mix-blend-screen will-change-transform" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] rounded-full bg-brand/5 blur-[160px] mix-blend-screen will-change-transform" />
+        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.03]" />
       </div>
 
       {/* Editorial Split Layout */}
@@ -87,8 +87,8 @@ export default function Hero({ onOpenAuth }: HeroProps) {
 
           {/* Haptic Eyebrow */}
           <div className="hero-eyebrow flex items-center gap-2 px-3 py-1.5 mb-8 rounded-full bg-surface border border-border backdrop-blur-md">
-            <Sparkle size={12} weight="fill" className="text-accent" />
-            <span className="text-[10px] text-muted uppercase tracking-[0.2em] font-medium mt-[1px]">
+            <Sparkle size={12} weight="fill" className="text-brand" />
+            <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium mt-[1px]">
               AI CV Builder &amp; Auto-Send
             </span>
           </div>
@@ -114,7 +114,7 @@ export default function Hero({ onOpenAuth }: HeroProps) {
             </span>
           </h1>
 
-          <p className="hero-sub mt-8 text-base sm:text-xl text-muted max-w-xl leading-relaxed font-light">
+          <p className="hero-sub mt-8 text-base sm:text-xl text-muted-foreground max-w-xl leading-relaxed font-light">
             {t.landing.heroSub}
           </p>
 
@@ -133,7 +133,7 @@ export default function Hero({ onOpenAuth }: HeroProps) {
             {/* Secondary Action: Ghost Glass Pill - Login Button with Google SVG */}
             <button
               onClick={onOpenAuth}
-              className="hero-cta group relative flex items-center gap-3 px-7 py-4 rounded-full bg-surface border border-border text-muted hover:bg-card-hover hover:text-foreground transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
+              className="hero-cta group relative flex items-center gap-3 px-7 py-4 rounded-full bg-surface border border-border text-muted-foreground hover:bg-card-hover hover:text-foreground transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
@@ -147,11 +147,11 @@ export default function Hero({ onOpenAuth }: HeroProps) {
         </div>
 
         {/* Right Abstract Visualizer (col-span-5) */}
-        <div className="lg:col-span-5 w-full hidden md:flex items-center justify-center perspective-[2000px]">
+        <div className="hero-visualizer lg:col-span-5 w-full hidden md:flex items-center justify-center perspective-[2000px]">
           <div className="relative group w-full max-w-lg rotate-y-[-12deg] rotate-x-[4deg] hover:rotate-y-0 hover:rotate-x-0 transition-all duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)]">
 
             {/* Subtle Outer Glow / Halo Effect on Hover */}
-            <div className="absolute -inset-1 bg-gradient-to-tr from-accent/0 via-accent/20 to-accent/0 rounded-[3rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+            <div className="absolute -inset-1 bg-gradient-to-tr from-brand/0 via-brand/20 to-brand/0 rounded-[3rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
 
             {/* Outer Shell (Double-Bezel Architecture) */}
             <div className="relative p-2 rounded-[2.5rem] bg-gradient-to-b from-white/10 to-white/5 ring-1 ring-white/10 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] backdrop-blur-3xl">
@@ -217,24 +217,24 @@ export default function Hero({ onOpenAuth }: HeroProps) {
                 </div>
 
                 {/* AI Scanning Beam Effect */}
-                <div className="absolute inset-x-0 h-64 top-0 bg-gradient-to-b from-transparent via-accent/10 to-accent/30 blur-md animate-scanner-beam pointer-events-none" />
+                <div className="absolute inset-x-0 h-64 top-0 bg-gradient-to-b from-transparent via-brand/10 to-brand/30 blur-md animate-scanner-beam pointer-events-none" />
 
                 {/* Sharp Laser Line */}
-                <div className="absolute inset-x-0 h-[2px] top-0 bg-accent shadow-[0_0_20px_var(--tw-shadow-color)] shadow-accent animate-scanner-line pointer-events-none" />
+                <div className="absolute inset-x-0 h-[2px] top-0 bg-brand shadow-[0_0_20px_var(--tw-shadow-color)] shadow-brand animate-scanner-line pointer-events-none" />
 
                 {/* Floating Status Badge (Glassmorphism) */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
                   <div className="bg-black/40 backdrop-blur-md border border-white/10 px-5 py-3 rounded-2xl shadow-2xl transform transition-transform duration-700 group-hover:scale-105">
                     <div className="flex items-center gap-4">
                       <div className="relative flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-accent shadow-[0_0_10px_currentColor]"></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-brand shadow-[0_0_10px_currentColor]"></span>
                       </div>
                       <div>
                         <div className="text-white text-xs font-bold tracking-widest uppercase mb-1">
                           CV Builder Active
                         </div>
-                        <div className="text-accent text-[10px] font-mono tracking-wider opacity-80">
+                        <div className="text-brand text-[10px] font-mono tracking-wider opacity-80">
                           ⚡ Generating ATS-friendly layout...
                         </div>
                       </div>

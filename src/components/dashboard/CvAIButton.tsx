@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { Check, Loader2, Sparkles } from 'lucide-react'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
 import { useAuth } from '@/lib/auth-context'
-import { Sparkle, Spinner, CheckCircle } from 'phosphor-react'
 
 interface CvAIButtonProps {
   section: string
@@ -12,7 +14,13 @@ interface CvAIButtonProps {
   label?: string
 }
 
-export default function CvAIButton({ section, language, context, onResult, label }: CvAIButtonProps) {
+export default function CvAIButton({
+  section,
+  language,
+  context,
+  onResult,
+  label,
+}: CvAIButtonProps) {
   const { user } = useAuth()
   const [loading, setLoading] = useState(false)
   const [done, setDone] = useState(false)
@@ -25,36 +33,43 @@ export default function CvAIButton({ section, language, context, onResult, label
       const token = await user.getIdToken()
       const res = await fetch('/api/cv-assist', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ section, language, context }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'AI assist failed')
       onResult(data.text)
       setDone(true)
+      toast.success('AI suggestion applied')
       setTimeout(() => setDone(false), 2000)
-    } catch {
-      // silent
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'AI assist failed')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <button
-      onClick={handleClick}
+    <Button
+      type='button'
+      variant='ghost'
+      size='sm'
+      onClick={() => void handleClick()}
       disabled={loading}
-      className="flex items-center gap-1.5 text-[10px] text-accent hover:opacity-80 disabled:opacity-40 transition-all duration-300"
       title={label || 'AI Assist'}
+      className='h-6 gap-1 px-1.5 text-[10px] text-primary hover:text-primary'
     >
       {loading ? (
-        <Spinner size={12} className="animate-spin" />
+        <Loader2 className='size-3 animate-spin' />
       ) : done ? (
-        <CheckCircle size={12} weight="fill" />
+        <Check className='size-3' />
       ) : (
-        <Sparkle size={12} weight="fill" />
+        <Sparkles className='size-3' />
       )}
-      {loading ? 'Generating...' : done ? 'Done!' : label || 'AI Assist'}
-    </button>
+      {loading ? 'Generating…' : done ? 'Done!' : label || 'AI Assist'}
+    </Button>
   )
 }

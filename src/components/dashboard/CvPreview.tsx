@@ -1,6 +1,5 @@
 'use client'
 
-import { useRef } from 'react'
 import type { CvData, CvTemplateId } from '@/types'
 
 const sectionLabels: Record<string, { en: string; id: string }> = {

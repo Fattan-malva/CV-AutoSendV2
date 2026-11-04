@@ -1,12 +1,32 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { FileText, FloppyDisk, Download, Translate, Sparkle } from 'phosphor-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  CheckCircle2,
+  Download,
+  FileText,
+  Loader2,
+  Save,
+  Languages,
+  Sparkles,
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/lib/auth-context'
-import Skeleton from '@/components/ui/Skeleton'
 import CvEditor from './CvEditor'
 import CvPreview from './CvPreview'
-import { defaultCvData, templateLabels, cvHTML } from '@/services/cv.service'
+import { cvHTML, defaultCvData, templateLabels } from '@/services/cv.service'
 import type { CvData, CvTemplateId } from '@/types'
 
 export default function CvBuilderPage() {
@@ -14,114 +34,157 @@ export default function CvBuilderPage() {
   const [cv, setCv] = useState<CvData>(defaultCvData)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [saveMsg, setSaveMsg] = useState('')
+  const [dirty, setDirty] = useState(false)
   const [language, setLanguage] = useState<'id' | 'en'>('id')
   const [translating, setTranslating] = useState(false)
   const previewRef = useRef<HTMLDivElement>(null)
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
     if (!user) return
     const load = async () => {
       try {
         const token = await user.getIdToken()
-        const response = await fetch('/api/cv-data', { headers: { Authorization: `Bearer ${token}` } })
+        const response = await fetch('/api/cv-data', {
+          headers: { Authorization: `Bearer ${token}` },
+        })
         const { cvData: data } = await response.json()
         if (data) {
           setCv(data)
           setLanguage(data.language)
         }
-      } catch { /* ignore */ } finally { setLoading(false) }
+      } catch {
+        /* ignore */
+      } finally {
+        setLoading(false)
+      }
     }
-    load()
+    void load()
   }, [user])
 
   const translatingRef = useRef(false)
   const mountedRef = useRef(true)
-  useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false } }, [])
-
-  const fetchWithRetry = useCallback(async (url: string, options: RequestInit, retries = 3) => {
-    for (let attempt = 0; attempt < retries; attempt++) {
-      const res = await fetch(url, options)
-      if (res.ok) return res
-      if (res.status >= 500 && attempt < retries - 1) {
-        await new Promise(r => setTimeout(r, 2000 * Math.pow(2, attempt)))
-        continue
-      }
-      throw new Error((await res.json()).error || `HTTP ${res.status}`)
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
     }
-    throw new Error('Service unavailable')
   }, [])
 
-  const handleLanguageChange = useCallback(async (newLang: 'id' | 'en') => {
-    if (newLang === language || translatingRef.current || !user) return
-    translatingRef.current = true
-    setTranslating(true)
-
-    const currentCv = cv
-    const hasContent = currentCv.summary || currentCv.experience.length || currentCv.education.length || currentCv.skills.some(s => s.items.filter(i => i).length) || currentCv.certifications.length || currentCv.languages.length
-
-    if (!hasContent) {
-      if (mountedRef.current) {
-        setLanguage(newLang)
-        setCv((prev) => ({ ...prev, language: newLang }))
+  const fetchWithRetry = useCallback(
+    async (url: string, options: RequestInit, retries = 3) => {
+      for (let attempt = 0; attempt < retries; attempt++) {
+        const res = await fetch(url, options)
+        if (res.ok) return res
+        if (res.status >= 500 && attempt < retries - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 2000 * Math.pow(2, attempt)))
+          continue
+        }
+        throw new Error((await res.json()).error || `HTTP ${res.status}`)
       }
-      translatingRef.current = false
-      if (mountedRef.current) setTranslating(false)
-      return
-    }
+      throw new Error('Service unavailable')
+    },
+    []
+  )
 
+  const handleLanguageChange = useCallback(
+    async (newLang: 'id' | 'en') => {
+      if (newLang === language || translatingRef.current || !user) return
+      translatingRef.current = true
+      setTranslating(true)
+
+      const currentCv = cv
+      const hasContent =
+        currentCv.summary ||
+        currentCv.experience.length ||
+        currentCv.education.length ||
+        currentCv.skills.some((skill) => skill.items.filter((item) => item).length) ||
+        currentCv.certifications.length ||
+        currentCv.languages.length
+
+      if (!hasContent) {
+        if (mountedRef.current) {
+          setLanguage(newLang)
+          setCv((prev) => ({ ...prev, language: newLang }))
+        }
+        translatingRef.current = false
+        if (mountedRef.current) setTranslating(false)
+        return
+      }
+
+      try {
+        const token = await user.getIdToken()
+        const res = await fetchWithRetry('/api/cv-assist', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            section: 'translate-all',
+            language: newLang,
+            context: JSON.stringify(currentCv),
+          }),
+        })
+
+        const data = await res.json()
+        const translated = { ...currentCv, ...data.translated, language: newLang }
+
+        await fetch('/api/cv-data', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ cvData: translated }),
+        })
+
+        if (mountedRef.current) {
+          setCv(translated)
+          setLanguage(newLang)
+          setDirty(false)
+          toast.success(`CV translated to ${newLang === 'id' ? 'Indonesian' : 'English'}`)
+        }
+      } catch (error) {
+        if (mountedRef.current) {
+          setLanguage(language)
+          setCv(currentCv)
+          toast.error(error instanceof Error ? error.message : 'Translation failed')
+        }
+      } finally {
+        translatingRef.current = false
+        if (mountedRef.current) setTranslating(false)
+      }
+    },
+    [cv, language, user, fetchWithRetry]
+  )
+
+  const handleChange = useCallback((next: CvData) => {
+    setCv(next)
+    setDirty(true)
+  }, [])
+
+  const handleSave = useCallback(async () => {
+    if (!user) return
+    setSaving(true)
     try {
       const token = await user.getIdToken()
-      const payload = JSON.stringify(currentCv)
-
-      const res = await fetchWithRetry('/api/cv-assist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ section: 'translate-all', language: newLang, context: payload }),
+      const res = await fetch('/api/cv-data', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ cvData: { ...cv, language } }),
       })
-
-      const data = await res.json()
-      const translated = { ...currentCv, ...data.translated, language: newLang }
-
-      await fetch('/api/cv-data', {
-        method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ cvData: translated }),
-      })
-
-      if (mountedRef.current) {
-        setCv(translated)
-        setLanguage(newLang)
-      }
-    } catch {
-      if (mountedRef.current) {
-        setLanguage(language)
-        setCv(currentCv)
-      }
-    } finally {
-      translatingRef.current = false
-      if (mountedRef.current) setTranslating(false)
-    }
-  }, [cv, language, user, fetchWithRetry])
-
-  // CV Builder: do NOT auto-save while typing.
-  // Explicit saves go through the Supabase-backed API route.
-  const handleSave = useCallback(async () => {
-    setSaving(true)
-    setSaveMsg('')
-    try {
-      // no-op: keep local changes only
-      setSaveMsg('Saved locally!')
-      setTimeout(() => setSaveMsg(''), 2000)
+      if (!res.ok) throw new Error('Failed to save CV')
+      setDirty(false)
+      toast.success('CV saved to your workspace')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to save CV')
     } finally {
       setSaving(false)
     }
-  }, [])
-
-  // Disable debounce auto-save to keep edits explicit.
-  useEffect(() => {
-    // no-op
-  }, [])
+  }, [cv, language, user])
 
   const handleDownloadPdf = useCallback(() => {
     const el = document.createElement('style')
@@ -160,121 +223,177 @@ export default function CvBuilderPage() {
     }, 100)
   }, [cv, language])
 
-  const getAIContext = useCallback((section: string) => {
-    switch (section) {
-      case 'summary':
-        return cv.experience.map((e) => `${e.position} at ${e.company} (${e.startDate}-${e.endDate}): ${e.bulletPoints.filter(b => b).join('; ')}`).join('\n')
-      case 'bullet':
-        if (cv.experience.length > 0) {
-          const last = cv.experience[cv.experience.length - 1]
-          return `Position: ${last.position}\nCompany: ${last.company}\nDescription: ${last.description}`
-        }
-        return ''
-      case 'skills':
-        return cv.experience.map((e) => `${e.position} at ${e.company}`).join('\n')
-      default:
-        return ''
-    }
-  }, [cv.experience])
+  const getAIContext = useCallback(
+    (section: string) => {
+      switch (section) {
+        case 'summary':
+          return cv.experience
+            .map(
+              (exp) =>
+                `${exp.position} at ${exp.company} (${exp.startDate}-${exp.endDate}): ${exp.bulletPoints
+                  .filter(Boolean)
+                  .join('; ')}`
+            )
+            .join('\n')
+        case 'bullet':
+          if (cv.experience.length > 0) {
+            const last = cv.experience[cv.experience.length - 1]
+            return `Position: ${last.position}\nCompany: ${last.company}\nDescription: ${last.description}`
+          }
+          return ''
+        case 'skills':
+          return cv.experience.map((exp) => `${exp.position} at ${exp.company}`).join('\n')
+        default:
+          return ''
+      }
+    },
+    [cv.experience]
+  )
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
-            <FileText size={18} className="text-accent" weight="duotone" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton className="h-5 w-28" />
-            <Skeleton className="h-3 w-44" />
+      <div className='space-y-6'>
+        <div className='flex items-center gap-3'>
+          <Skeleton className='size-10 rounded-xl' />
+          <div className='space-y-2'>
+            <Skeleton className='h-5 w-32' />
+            <Skeleton className='h-3 w-56' />
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Skeleton className="h-[600px] rounded-[2rem]" />
-          <Skeleton className="h-[842px] rounded-[2rem]" />
+        <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+          <Skeleton className='h-[600px] rounded-xl' />
+          <Skeleton className='h-[842px] rounded-xl' />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl bg-accent/10 border border-accent/20 flex items-center justify-center">
-          <FileText size={18} className="text-accent" weight="duotone" />
+    <div className='flex flex-col gap-4 md:gap-6'>
+      <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
+        <div>
+          <div className='flex items-center gap-2'>
+            <h2 className='text-2xl font-semibold tracking-tight'>CV Builder</h2>
+            <Badge variant='outline' className='gap-1 text-[10px]'>
+              <Sparkles className='size-3 text-primary' /> AI assisted
+            </Badge>
+            {dirty ? (
+              <Badge variant='secondary' className='text-[10px]'>
+                Unsaved changes
+              </Badge>
+            ) : (
+              <Badge
+                variant='secondary'
+                className='gap-1 border-transparent bg-emerald-500/10 text-[10px] text-emerald-600 dark:text-emerald-400'
+              >
+                <CheckCircle2 className='size-3' /> Saved
+              </Badge>
+            )}
+          </div>
+          <p className='text-sm text-muted-foreground'>
+            Create and customize your ATS-friendly CV with AI writing help.
+          </p>
         </div>
-        <div className="flex-1">
-          <h2 className="text-sm text-foreground font-medium">CV Builder</h2>
-          <p className="text-[10px] text-muted mt-0.5">Create and customize your ATS-friendly CV</p>
+        <div className='flex items-center gap-2'>
+          <Button variant='outline' onClick={handleDownloadPdf}>
+            <Download className='size-4' /> Download PDF
+          </Button>
+          <Button onClick={() => void handleSave()} disabled={saving || !dirty}>
+            {saving ? <Loader2 className='size-4 animate-spin' /> : <Save className='size-4' />}
+            {saving ? 'Saving…' : 'Save CV'}
+          </Button>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex gap-1 p-0.5 bg-border/30 rounded-xl">
-          {(Object.entries(templateLabels) as [CvTemplateId, { label: string; desc: string }][]).map(([id, cfg]) => (
-            <button key={id} onClick={() => setCv((prev) => ({ ...prev, templateId: id }))}
-              className={`px-3 py-1.5 text-[11px] font-medium rounded-lg transition-all duration-300 ${cv.templateId === id ? 'bg-accent text-background' : 'text-muted hover:text-foreground'}`}
-              title={cfg.desc}
-            >
-              {cfg.label}
-            </button>
-          ))}
+      <div className='flex flex-wrap items-center gap-3'>
+        <Tabs
+          value={cv.templateId}
+          onValueChange={(value) => handleChange({ ...cv, templateId: value as CvTemplateId })}
+        >
+          <TabsList className='h-9'>
+            {(Object.entries(templateLabels) as [CvTemplateId, { label: string; desc: string }][]).map(
+              ([id, config]) => (
+                <TabsTrigger key={id} value={id} className='text-xs' title={config.desc}>
+                  {config.label}
+                </TabsTrigger>
+              )
+            )}
+          </TabsList>
+        </Tabs>
+
+        <div className='flex items-center gap-1 rounded-lg border bg-card p-0.5'>
+          <Button
+            variant={language === 'id' ? 'default' : 'ghost'}
+            size='sm'
+            className='h-8 gap-1.5 px-2.5 text-xs'
+            onClick={() => void handleLanguageChange('id')}
+            disabled={translating}
+          >
+            <Languages className='size-3.5' /> ID
+          </Button>
+          <Button
+            variant={language === 'en' ? 'default' : 'ghost'}
+            size='sm'
+            className='h-8 gap-1.5 px-2.5 text-xs'
+            onClick={() => void handleLanguageChange('en')}
+            disabled={translating}
+          >
+            <Languages className='size-3.5' /> EN
+          </Button>
         </div>
 
-        <div className="flex gap-1 p-0.5 bg-border/30 rounded-xl">
-          <button onClick={() => handleLanguageChange('id')} disabled={translating}
-            className={`px-3 py-1.5 text-[11px] font-medium rounded-lg transition-all duration-300 flex items-center gap-1 ${language === 'id' ? 'bg-accent text-background' : 'text-muted hover:text-foreground'} disabled:opacity-50`}>
-            <Translate size={12} /> ID
-          </button>
-          <button onClick={() => handleLanguageChange('en')} disabled={translating}
-            className={`px-3 py-1.5 text-[11px] font-medium rounded-lg transition-all duration-300 flex items-center gap-1 ${language === 'en' ? 'bg-accent text-background' : 'text-muted hover:text-foreground'} disabled:opacity-50`}>
-            <Translate size={12} /> EN
-          </button>
-          {translating && (
-            <div className="flex items-center gap-2 bg-accent/10 border border-accent/20 rounded-full px-3 py-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-              <span className="text-[10px] text-accent font-medium">Translating CV...</span>
-            </div>
-          )}
+        {translating ? (
+          <div className='flex items-center gap-2 rounded-full border bg-primary/5 px-3 py-1.5 text-xs text-primary'>
+            <Loader2 className='size-3 animate-spin' />
+            Translating CV…
+          </div>
+        ) : null}
+
+        <div className='ms-auto flex items-center gap-1.5 text-xs text-muted-foreground'>
+          <Sparkles className='size-3.5 text-primary' />
+          ATS-friendly templates
         </div>
-
-        <div className="flex-1" />
-
-        <button onClick={handleSave} disabled={saving}
-          className="flex items-center gap-1.5 px-4 py-1.5 bg-accent text-background rounded-lg text-xs font-medium hover:opacity-90 disabled:opacity-40 transition-all duration-300"
-        >
-          <FloppyDisk size={14} />
-          {saving ? 'Saving...' : 'Save'}
-        </button>
-        {saveMsg && <span className="text-xs text-accent">{saveMsg}</span>}
-
-        <button onClick={handleDownloadPdf}
-          className="flex items-center gap-1.5 px-4 py-1.5 border border-border text-foreground rounded-lg text-xs font-medium hover:bg-subtle transition-all duration-300"
-        >
-          <Download size={14} />
-          PDF
-        </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="p-1.5 rounded-[2rem] bg-border/30 max-h-[calc(100vh-220px)] overflow-y-auto">
-          <div className="rounded-[calc(2rem-0.375rem)] bg-card p-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
-            <CvEditor cv={cv} onChange={setCv} language={language} getAIContext={getAIContext} />
-          </div>
-        </div>
+      <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+        <Card className='max-h-[calc(100vh-16rem)] gap-0 overflow-hidden py-0'>
+          <CardHeader className='border-b px-4 py-3'>
+            <CardTitle className='flex items-center gap-2 text-sm'>
+              <FileText className='size-4 text-primary' />
+              Editor
+            </CardTitle>
+            <CardDescription className='text-xs'>
+              Fill in your details — changes stay local until you save.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className='overflow-y-auto p-3'>
+            <CvEditor
+              cv={cv}
+              onChange={handleChange}
+              language={language}
+              getAIContext={getAIContext}
+            />
+          </CardContent>
+        </Card>
 
-        <div className="p-1.5 rounded-[2rem] bg-border/30 sticky top-4 self-start">
-          <div className="rounded-[calc(2rem-0.375rem)] bg-card p-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] overflow-y-auto max-h-[calc(100vh-220px)]">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] uppercase tracking-wider text-muted">Preview</span>
-              <div className="flex items-center gap-1 text-[10px] text-muted">
-                <Sparkle size={10} weight="fill" className="text-accent" />
-                ATS-friendly
-              </div>
+        <Card className='sticky top-20 max-h-[calc(100vh-7rem)] gap-0 self-start overflow-hidden py-0'>
+          <CardHeader className='border-b px-4 py-3'>
+            <CardTitle className='text-sm'>Live preview</CardTitle>
+            <CardDescription className='text-xs'>
+              This is how your CV looks when exported.
+            </CardDescription>
+            <CardAction>
+              <Badge variant='outline' className='gap-1 text-[10px]'>
+                <Sparkles className='size-3 text-primary' /> A4
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardContent className='overflow-y-auto bg-muted/30 p-4'>
+            <div className='mx-auto w-full max-w-[595px] shadow-xl'>
+              <CvPreview cv={cv} lang={language} previewRef={previewRef} />
             </div>
-            <CvPreview cv={cv} lang={language} previewRef={previewRef} />
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

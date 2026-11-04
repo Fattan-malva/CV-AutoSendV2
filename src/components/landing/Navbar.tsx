@@ -2,20 +2,16 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Sun, Moon } from 'phosphor-react'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n-context'
-import { useTheme } from '@/lib/theme-context'
 
 interface NavbarProps {
   onOpenAuth: () => void
-  onOpenLogout: () => void
 }
 
-export default function Navbar({ onOpenAuth, onOpenLogout }: NavbarProps) {
+export default function Navbar({ onOpenAuth }: NavbarProps) {
   const { user } = useAuth()
   const { t, locale, setLocale } = useI18n()
-  const { theme, toggleTheme } = useTheme()
   const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
@@ -59,13 +55,6 @@ export default function Navbar({ onOpenAuth, onOpenLogout }: NavbarProps) {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={toggleTheme}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/[0.06] transition-all duration-300"
-              title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
-            >
-              {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
-            </button>
             <button
               onClick={() => setLocale(locale === 'id' ? 'en' : 'id')}
               className="hidden md:inline-flex text-xs text-white/50 hover:text-white transition-colors duration-300 w-8 h-8 items-center justify-center rounded-full hover:bg-white/[0.06]"
@@ -167,12 +156,6 @@ export default function Navbar({ onOpenAuth, onOpenLogout }: NavbarProps) {
                 transform: 'translateY(24px)',
               }}
             >
-              <button
-                onClick={() => { toggleTheme(); setMenuOpen(false) }}
-                className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors"
-              >
-                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-              </button>
               <button
                 onClick={() => { setLocale(locale === 'id' ? 'en' : 'id'); setMenuOpen(false) }}
                 className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors text-xs font-medium"

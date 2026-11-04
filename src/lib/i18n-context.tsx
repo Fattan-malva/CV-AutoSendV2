@@ -29,6 +29,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY) as Locale | null
     if (saved === 'id' || saved === 'en') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- restoring persisted locale on mount
       setLocaleState(saved)
     }
   }, [])

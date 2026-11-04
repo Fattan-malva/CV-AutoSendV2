@@ -23,8 +23,8 @@ export const metadata: Metadata = {
   description: 'Build ATS-friendly CVs with AI and auto-send applications to every job opening. Free AI CV builder creates professional resumes, analyzes brochures, and sends emails in one click.',
   keywords: ['CV builder', 'AI CV builder', 'free resume builder', 'ATS-friendly CV', 'auto job application sender', 'apply to jobs online', 'job search tools', 'job application automation', 'AI resume writer', 'career tools', 'find jobs online', 'ceefy'],
   icons: {
-    icon: '/favicon.png',
-    apple: '/favicon.png',
+    icon: '/icons.png',
+    apple: '/icons.png',
   },
   openGraph: {
     title: 'Ceefy - Free AI CV Builder & Auto Job Application Sender',
@@ -59,6 +59,11 @@ export default function RootLayout({
     <html lang="en" className={`${outfit.variable} ${plusJakartaSans.variable} antialiased`} suppressHydrationWarning>
       <head>
         <meta name="google-site-verification" content="xgzeigl6YoKgRyfWu9ZPM4xn0OY4ApfTzcfb7FBKIwY" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('ceefy-theme')||'dark';var d=t==='system'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):t;var r=document.documentElement;r.classList.toggle('dark',d==='dark');r.setAttribute('data-theme',d);r.style.colorScheme=d;}catch(e){document.documentElement.classList.add('dark');document.documentElement.setAttribute('data-theme','dark');}})();`,
+          }}
+        />
         <script type="application/ld+json" dangerouslySetInnerHTML={{
           __html: JSON.stringify([
             {

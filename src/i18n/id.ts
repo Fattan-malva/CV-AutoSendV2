@@ -179,6 +179,11 @@ const id = {
     upgradeBtn: 'Upgrade Sekarang',
     logout: 'Keluar',
     noFiles: 'Belum ada brosur diupload',
+    workspace: 'Workspace',
+    resources: 'Sumber Daya',
+    proUnlimited: 'Pro — tanpa batas',
+    analysesLeftShort: '{remaining}/{limit} analisis tersisa',
+    analysesLeftCycle: '{count} analisis tersisa siklus ini.',
   },
   cvBuilder: {
     title: 'CV Builder',

@@ -74,22 +74,22 @@ export default function Pricing({ onOpenAuth }: PricingProps) {
     <section ref={root} id="pricing" className="relative py-32 md:py-48 px-4 sm:px-8 overflow-hidden">
       {/* Ethereal Glass background mesh */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-5%] right-[-10%] w-[45vw] h-[45vw] rounded-full bg-accent/5 blur-[160px] mix-blend-screen" />
-        <div className="absolute bottom-[-15%] left-[-5%] w-[50vw] h-[50vw] rounded-full bg-accent/6 blur-[160px] mix-blend-screen" />
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02]" />
+        <div className="absolute top-[-5%] right-[-10%] w-[45vw] h-[45vw] rounded-full bg-brand/5 blur-[160px] mix-blend-screen" />
+        <div className="absolute bottom-[-15%] left-[-5%] w-[50vw] h-[50vw] rounded-full bg-brand/6 blur-[160px] mix-blend-screen" />
+        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.02]" />
       </div>
       <div className="max-w-[1440px] mx-auto relative z-10">
         <div className="mb-20 max-w-2xl">
           <div className="flex items-center gap-2 px-3 py-1.5 mb-8 rounded-full bg-surface border border-border backdrop-blur-md w-fit">
-            <Sparkle size={12} weight="fill" className="text-accent" />
-            <span className="text-[10px] text-muted uppercase tracking-[0.2em] font-medium mt-[1px]">
+            <Sparkle size={12} weight="fill" className="text-brand" />
+            <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium mt-[1px]">
               {t.landing.pricingTitle}
             </span>
           </div>
           <h2 className="text-4xl sm:text-5xl md:text-7xl font-serif text-foreground leading-[0.95] tracking-tight">
             {t.landing.pricingTitle}
           </h2>
-          <p className="mt-6 text-base sm:text-lg text-muted max-w-xl leading-relaxed font-light">
+          <p className="mt-6 text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed font-light">
             {t.landing.pricingDesc}
           </p>
         </div>
@@ -100,7 +100,7 @@ export default function Pricing({ onOpenAuth }: PricingProps) {
               <div
                 className={`p-[1px] rounded-[2rem] h-full transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:-translate-y-2 ${
                   tier.featured
-                    ? 'bg-gradient-to-b from-accent/40 via-accent/20 to-white/5'
+                    ? 'bg-gradient-to-b from-brand/40 via-brand/20 to-white/5'
                     : 'bg-gradient-to-b from-white/10 to-white/[0.02]'
                 }`}
               >
@@ -110,24 +110,24 @@ export default function Pricing({ onOpenAuth }: PricingProps) {
                       {L[tier.nameKey]}
                     </h3>
                     {tier.featured && (
-                      <span className="text-[10px] uppercase tracking-[0.15em] text-accent px-2.5 py-1 rounded-full border border-accent/30">
+                      <span className="text-[10px] uppercase tracking-[0.15em] text-brand px-2.5 py-1 rounded-full border border-brand/30">
                         {t.landing.pricingPopular}
                       </span>
                     )}
                   </div>
 
                   <p className="text-4xl font-serif text-foreground mb-1">
-                    {(tier as any).priceKey ? L[(tier as any).priceKey as string] : (tier as any).price}
+                    {'priceKey' in tier ? L[tier.priceKey] : tier.price}
                   </p>
-                  <p className="text-xs text-muted mb-8">
+                  <p className="text-xs text-muted-foreground mb-8">
                     {L[tier.descKey]}
                   </p>
 
                   <div className="flex-1 space-y-3 mb-8">
                     {(t.landing.pricingFeatures as Record<string, string[]>)[tier.key].map((feat, fi) => (
                       <div key={fi} className="flex items-center gap-2.5">
-                        <Check size={15} className="text-accent shrink-0" weight="bold" />
-                        <span className="text-sm text-muted">{feat}</span>
+                        <Check size={15} className="text-brand shrink-0" weight="bold" />
+                        <span className="text-sm text-muted-foreground">{feat}</span>
                       </div>
                     ))}
                   </div>

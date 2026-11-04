@@ -28,6 +28,7 @@ export interface BulkItem {
 
 interface ProcessingContextType {
   config: UserConfig | null
+  updateConfig: (config: UserConfig) => void
   items: BulkItem[]
   bulkRunning: boolean
   bulkProgress: { done: number; total: number }
@@ -79,8 +80,10 @@ export function ProcessingProvider({
   const [upgradeOpen, setUpgradeOpen] = useState(false)
 
   const configRef = useRef(config)
+  // eslint-disable-next-line react-hooks/refs -- keep latest context values without re-creating callbacks
   configRef.current = config
   const userRef = useRef(user)
+  // eslint-disable-next-line react-hooks/refs -- keep latest context values without re-creating callbacks
   userRef.current = user
   const cvPdfUrlRef = useRef<string | null>(null)
 
@@ -144,20 +147,6 @@ export function ProcessingProvider({
 
   const updateItem = useCallback((id: string, patch: Partial<BulkItem>) => {
     setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)))
-  }, [])
-
-  const addFiles = useCallback((files: File[]) => {
-    const newItems: BulkItem[] = files.map((f) => ({
-      id: crypto.randomUUID(),
-      file: f,
-      status: 'pending',
-      editable: { subjek: '', nama_perusahaan: '', posisi: '', intro: '', alasan: '', penutup: '', email: '' },
-      selected: true,
-      expanded: false,
-      sending: false,
-    }))
-    setItems((prev) => [...prev, ...newItems])
-    setTimeout(() => { analyzeAllPending() }, 100)
   }, [])
 
   const analyzeSingle = useCallback(async (item: BulkItem) => {
@@ -262,7 +251,7 @@ export function ProcessingProvider({
     } catch (e) {
       updateItem(item.id, { status: 'error', error: e instanceof Error ? e.message : 'Send failed', sending: false })
     }
-  }, [updateItem, onConfigUpdate])
+  }, [updateItem, onConfigUpdate, getCvDataPdfUrl])
 
   const analyzeAllPending = useCallback(() => {
     setItems((prev) => {
@@ -315,9 +304,24 @@ export function ProcessingProvider({
     setItems([])
   }, [])
 
+  const addFiles = useCallback((files: File[]) => {
+    const newItems: BulkItem[] = files.map((f) => ({
+      id: crypto.randomUUID(),
+      file: f,
+      status: 'pending',
+      editable: { subjek: '', nama_perusahaan: '', posisi: '', intro: '', alasan: '', penutup: '', email: '' },
+      selected: true,
+      expanded: false,
+      sending: false,
+    }))
+    setItems((prev) => [...prev, ...newItems])
+    setTimeout(() => { analyzeAllPending() }, 100)
+  }, [analyzeAllPending])
+
   return (
     <ProcessingContext.Provider value={{
       config, items, bulkRunning, bulkProgress, sendingBulk, upgradeOpen,
+      updateConfig: onConfigUpdate,
       addFiles, removeItem, toggleSelect, toggleExpanded, updateItem,
       analyzeAllPending, analyzeSingle, sendAllDone, sendSingleItem, clearAll,
       setUpgradeOpen,

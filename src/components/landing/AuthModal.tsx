@@ -81,29 +81,29 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
             {transitioning ? (
               <div className="py-8">
                 <div className="flex items-center justify-center gap-3 mb-6 animate-stagger" style={{ animation: 'stagger-fade 0.5s ease forwards' }}>
-                  <span className="text-sm text-muted">Authenticated</span>
-                  <Spinner size={18} className="text-accent animate-spin" />
+                  <span className="text-sm text-muted-foreground">Authenticated</span>
+                  <Spinner size={18} className="text-brand animate-spin" />
                 </div>
-                <div className="flex items-center justify-center gap-2 text-xs text-muted">
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+                  <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse" />
                   <span>Redirecting to dashboard...</span>
                 </div>
               </div>
             ) : (
               <>
                 <h2 className="text-2xl font-serif text-foreground mb-2">{t.login.title}</h2>
-                <p className="text-xs text-muted mb-8">Masuk dengan akun Google Anda</p>
+                <p className="text-xs text-muted-foreground mb-8">Masuk dengan akun Google Anda</p>
 
                 {user ? (
                   <div className="mt-4 p-4 bg-subtle rounded-2xl border border-border">
                     <p className="text-sm font-medium text-foreground">{user.displayName || user.email}</p>
-                    <p className="text-xs text-muted">{user.email}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                 ) : (
                   <button
                     onClick={handleGoogleLogin}
                     disabled={loading}
-                    className="group w-full flex items-center justify-center gap-3 bg-accent text-background rounded-full px-5 py-3.5 font-medium text-sm hover:opacity-90 disabled:opacity-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
+                    className="group w-full flex items-center justify-center gap-3 bg-brand text-background rounded-full px-5 py-3.5 font-medium text-sm hover:opacity-90 disabled:opacity-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
                   >
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
