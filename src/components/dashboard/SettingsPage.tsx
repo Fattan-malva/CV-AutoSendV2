@@ -45,14 +45,14 @@ type SectionId = 'profile' | 'email' | 'cv' | 'appearance'
 
 const sections: {
   id: SectionId
-  label: string
-  description: string
+  labelKey: 'profileSection' | 'emailSection' | 'cvSection' | 'appearanceSection'
+  descriptionKey: 'profileDesc' | 'emailSectionDesc' | 'cvSectionDesc' | 'appearanceSectionDesc'
   icon: React.ComponentType<{ className?: string }>
 }[] = [
-  { id: 'profile', label: 'Profile', description: 'Account & plan', icon: User },
-  { id: 'email', label: 'Email & SMTP', description: 'Sending identity', icon: Mail },
-  { id: 'cv', label: 'CV file', description: 'Attachment used', icon: FileText },
-  { id: 'appearance', label: 'Appearance', description: 'Theme & language', icon: Palette },
+  { id: 'profile', labelKey: 'profileSection', descriptionKey: 'profileDesc', icon: User },
+  { id: 'email', labelKey: 'emailSection', descriptionKey: 'emailSectionDesc', icon: Mail },
+  { id: 'cv', labelKey: 'cvSection', descriptionKey: 'cvSectionDesc', icon: FileText },
+  { id: 'appearance', labelKey: 'appearanceSection', descriptionKey: 'appearanceSectionDesc', icon: Palette },
 ]
 
 const themeOptions: { value: ThemeMode; label: string; preview: string }[] = [
@@ -64,7 +64,7 @@ const themeOptions: { value: ThemeMode; label: string; preview: string }[] = [
 function SettingsSaveBar({
   saving,
   onSave,
-  label = 'Save changes',
+  label,
 }: {
   saving: boolean
   onSave: () => void
@@ -74,7 +74,7 @@ function SettingsSaveBar({
     <div className='flex justify-end border-t pt-4'>
       <Button onClick={onSave} disabled={saving}>
         {saving ? <Loader2 className='size-4 animate-spin' /> : <Save className='size-4' />}
-        {saving ? 'Saving…' : label}
+        {saving ? String(label || 'Saving…') : label}
       </Button>
     </div>
   )
@@ -139,14 +139,14 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
       })
       const data = await res.json()
       if (!res.ok) {
-        setTestMsg(data.error || 'Test failed')
+        setTestMsg(data.error || String(t.dashboard.testFailedMsg || 'Test failed'))
         return false
       }
-      setTestMsg('Test email sent! Check your inbox.')
-      toast.success('Test email sent')
+      setTestMsg(String(t.dashboard.testEmailSentInbox || 'Test email sent! Check your inbox.'))
+      toast.success(String(t.dashboard.testEmailSentToast || 'Test email sent'))
       return true
     } catch (error) {
-      setTestMsg(error instanceof Error ? error.message : 'Test failed')
+      setTestMsg(error instanceof Error ? error.message : String(t.dashboard.testFailedMsg || 'Test failed'))
       return false
     } finally {
       setTesting(false)
@@ -158,7 +158,7 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
     const providedPass = smtpPass
     if (providedPass) {
       const ok = await testSmtp()
-      if (!ok) throw new Error('App password is not valid. Please check again.')
+      if (!ok) throw new Error(String(t.dashboard.appPasswordInvalid || 'App password is not valid. Please check again.'))
     }
     const token = await user.getIdToken()
     let cvPath = config.cvPath
@@ -185,7 +185,7 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
       })
       if (!uploadRes.ok) {
         const err = await uploadRes.json()
-        throw new Error(err.error || 'Failed to upload CV')
+        throw new Error(err.error || String(t.dashboard.failedToUploadCvMsg || 'Failed to upload CV'))
       }
       const data = await uploadRes.json()
       cvPath = data.url
@@ -214,7 +214,7 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
     })
     if (!saveRes.ok) {
       const err = await saveRes.json()
-      throw new Error(err.error || 'Failed to save settings')
+      throw new Error(err.error || String(t.dashboard.failedToSaveSettingsMsg || 'Failed to save settings'))
     }
 
     setSmtpConfigured(Boolean(providedPass || config.smtpPass))
@@ -236,9 +236,9 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
     setSaving(true)
     try {
       await persistConfig()
-      toast.success('Settings saved')
+      toast.success(String(t.dashboard.settingsSaved || 'Settings saved'))
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to save settings')
+      toast.error(error instanceof Error ? error.message : String(t.dashboard.failedToSaveSettings || 'Failed to save settings'))
     } finally {
       setSaving(false)
     }
@@ -258,7 +258,7 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
       <div>
         <h2 className='text-2xl font-semibold tracking-tight'>{t.dashboard.settings}</h2>
         <p className='text-sm text-muted-foreground'>
-          Manage your sending identity, CV attachment, plan, and dashboard appearance.
+          {String(t.dashboard.settingsDesc || 'Manage your sending identity, CV attachment, plan, and dashboard appearance.')}
         </p>
       </div>
 
@@ -267,22 +267,22 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
           <div className='flex items-start gap-2 text-sm text-amber-700 dark:text-amber-400'>
             <ShieldCheck className='mt-0.5 size-4 shrink-0' />
             <div>
-              <p className='font-medium'>Setup required before sending applications</p>
+              <p className='font-medium'>{String(t.dashboard.setupRequired || 'Setup required before sending applications')}</p>
               <p className='text-xs text-amber-700/80 dark:text-amber-400/80'>
-                {!config.smtpPass ? 'Email app password is missing. ' : ''}
-                {!config.cvPath ? 'CV attachment is missing.' : ''}
+                {!config.smtpPass ? String(t.dashboard.emailMissing || 'Email app password is missing. ') : ''}
+                {!config.cvPath ? String(t.dashboard.cvMissing || 'CV attachment is missing.') : ''}
               </p>
             </div>
           </div>
           <div className='ms-auto flex gap-2'>
             {!config.smtpPass ? (
               <Button size='sm' variant='outline' onClick={() => setActive('email')}>
-                Set up email
+                {String(t.dashboard.setUpEmail || 'Set up email')}
               </Button>
             ) : null}
             {!config.cvPath ? (
               <Button size='sm' variant='outline' onClick={() => setActive('cv')}>
-                Upload CV
+                {String(t.dashboard.uploadCvBtn || 'Upload CV')}
               </Button>
             ) : null}
           </div>
@@ -308,9 +308,9 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
               >
                 <Icon className='size-4 shrink-0' />
                 <span className='grid'>
-                  <span className='text-sm font-medium'>{section.label}</span>
+                  <span className='text-sm font-medium'>{String(t.dashboard[section.labelKey] || section.labelKey)}</span>
                   <span className='hidden text-[10px] text-muted-foreground lg:block'>
-                    {section.description}
+                    {String(t.dashboard[section.descriptionKey] || section.descriptionKey)}
                   </span>
                 </span>
               </button>
@@ -322,9 +322,9 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
           {active === 'profile' ? (
             <Card>
               <CardHeader>
-                <CardTitle className='text-base'>Profile</CardTitle>
+                <CardTitle className='text-base'>{String(t.dashboard.profileSection || 'Profile')}</CardTitle>
                 <CardDescription>
-                  Your Ceefy account details and current subscription.
+                  {String(t.dashboard.profileDesc || 'Your Ceefy account details and current subscription.')}
                 </CardDescription>
               </CardHeader>
               <CardContent className='space-y-6'>
@@ -348,13 +348,15 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
                     </div>
                     <p className='truncate text-sm text-muted-foreground'>{user?.email}</p>
                     <p className='mt-1 text-xs text-muted-foreground'>
-                      Member since{' '}
-                      {user?.metadata?.creationTime
-                        ? new Date(user.metadata.creationTime).toLocaleDateString('en', {
-                            month: 'long',
-                            year: 'numeric',
-                          })
-                        : '—'}
+                      {String(t.dashboard.memberSince || 'Member since {date}').replace(
+                        '{date}',
+                        user?.metadata?.creationTime
+                          ? new Date(user.metadata.creationTime).toLocaleDateString('en', {
+                              month: 'long',
+                              year: 'numeric',
+                            })
+                          : '—'
+                      )}
                     </p>
                   </div>
                 </div>
@@ -363,22 +365,22 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
 
                 <div className='grid gap-4 sm:grid-cols-2'>
                   <div className='space-y-1.5'>
-                    <Label htmlFor='sender-name'>Display name</Label>
+                    <Label htmlFor='sender-name'>{String(t.dashboard.displayName || 'Display name')}</Label>
                     <Input
                       id='sender-name'
                       value={senderName}
                       onChange={(event) => setSenderName(event.target.value)}
-                      placeholder='Your name'
+                      placeholder={t.dashboard.displayNamePlaceholder || 'Your name'}
                     />
                     <p className='text-xs text-muted-foreground'>
-                      Used as the sender name in outgoing emails.
+                      {String(t.dashboard.displayNameHint || 'Used as the sender name in outgoing emails.')}
                     </p>
                   </div>
                   <div className='space-y-1.5'>
-                    <Label>Email address</Label>
+                    <Label>{String(t.dashboard.emailAddress || 'Email address')}</Label>
                     <Input value={user?.email || ''} disabled />
                     <p className='text-xs text-muted-foreground'>
-                      Signed in with Firebase Authentication.
+                      {String(t.dashboard.signedInWith || 'Signed in with Firebase Authentication.')}
                     </p>
                   </div>
                 </div>
@@ -392,46 +394,51 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
                         <Zap className='size-4 text-primary' />
                       </div>
                       <div>
-                        <p className='text-sm font-medium'>{getPlanLabel(plan)} plan</p>
+                        <p className='text-sm font-medium'>
+                          {t.dashboard.planLabel.replace('{plan}', getPlanLabel(plan))}
+                        </p>
                         <p className='text-xs text-muted-foreground'>
                           {unlimited
-                            ? 'Unlimited analyses and sends'
-                            : `${limit} analyses and ${limit} sends per month`}
+                            ? String(t.dashboard.unlimitedPlanDesc || 'Unlimited analyses and sends')
+                            : t.dashboard.limitedPlanDesc
+                                .replace('{limit}', String(limit))
+                                .replace('{limit}', String(limit))
+                                .replace('per month', '/bulan')}
                         </p>
                       </div>
                     </div>
                     {!unlimited ? (
                       <Button size='sm' onClick={() => setUpgradeOpen(true)}>
-                        <Sparkles className='size-3.5' /> Upgrade
+                        <Sparkles className='size-3.5' /> {String(t.dashboard.upgradeBtnLabel || 'Upgrade')}
                       </Button>
                     ) : (
                       <Badge
                         variant='secondary'
                         className='gap-1 border-transparent bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                       >
-                        <CheckCircle2 className='size-3' /> Active
+                        <CheckCircle2 className='size-3' /> {String(t.dashboard.activeBadge || 'Active')}
                       </Badge>
                     )}
                   </div>
                   <div className='grid gap-3 sm:grid-cols-2'>
                     <div className='space-y-1.5'>
                       <div className='flex justify-between text-xs'>
-                        <span>AI analyses</span>
+                        <span>{String(t.dashboard.aiAnalyses || 'AI analyses')}</span>
                         <span className='text-muted-foreground'>
                           {unlimited
-                            ? `${config.usageAnalyze || 0} used`
-                            : `${config.usageAnalyze || 0} / ${limit}`}
+                            ? `${config.usageAnalyze || 0} ${t.dashboard.usageUsed.replace('{count}', '')}`
+                            : `${config.usageAnalyze || 0} ${String(t.dashboard.of || 'of')} ${limit}`}
                         </span>
                       </div>
                       <Progress value={analyzePercent} />
                     </div>
                     <div className='space-y-1.5'>
                       <div className='flex justify-between text-xs'>
-                        <span>Email sends</span>
+                        <span>{String(t.dashboard.emailSends || 'Email sends')}</span>
                         <span className='text-muted-foreground'>
                           {unlimited
-                            ? `${config.usageSend || 0} used`
-                            : `${config.usageSend || 0} / ${limit}`}
+                            ? `${config.usageSend || 0} ${t.dashboard.usageUsed.replace('{count}', '')}`
+                            : `${config.usageSend || 0} ${String(t.dashboard.of || 'of')} ${limit}`}
                         </span>
                       </div>
                       <Progress value={sendPercent} />
@@ -439,7 +446,7 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
                   </div>
                   <Button variant='outline' size='sm' asChild>
                     <Link href='/#pricing'>
-                      Compare plans <ArrowUpRight className='size-3.5' />
+                      {String(t.dashboard.comparePlans || 'Compare plans')} <ArrowUpRight className='size-3.5' />
                     </Link>
                   </Button>
                 </div>
@@ -454,9 +461,9 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
               <CardHeader>
                 <div className='flex items-start justify-between gap-2'>
                   <div>
-                    <CardTitle className='text-base'>Email & SMTP</CardTitle>
+                    <CardTitle className='text-base'>{String(t.dashboard.emailSection || 'Email & SMTP')}</CardTitle>
                     <CardDescription>
-                      Connect your mailbox so Ceefy can send applications for you.
+                      {String(t.dashboard.emailSectionDesc || 'Connect your mailbox so Ceefy can send applications for you.')}
                     </CardDescription>
                   </div>
                   <Badge
@@ -473,7 +480,7 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
                     ) : (
                       <XCircle className='size-3' />
                     )}
-                    {smtpConfigured ? 'Configured' : 'Not configured'}
+                    {smtpConfigured ? String(t.dashboard.configured || 'Configured') : String(t.dashboard.notConfigured || 'Not configured')}
                   </Badge>
                 </div>
               </CardHeader>
@@ -519,7 +526,7 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
                         target='_blank'
                         rel='noopener noreferrer'
                       >
-                        Get app password <ExternalLink className='size-3' />
+                        {String(t.dashboard.getAppPassword || 'Get app password')} <ExternalLink className='size-3' />
                       </a>
                     </Button>
                   </div>
@@ -573,9 +580,9 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
 
                 <div className='flex flex-wrap items-center gap-2 rounded-lg border bg-muted/30 p-3'>
                   <div className='flex-1'>
-                    <p className='text-sm font-medium'>Test connection</p>
+                    <p className='text-sm font-medium'>{String(t.dashboard.testConnection || 'Test connection')}</p>
                     <p className='text-xs text-muted-foreground'>
-                      Send a test email to your own inbox before saving.
+                      {String(t.dashboard.testConnectionDesc || 'Send a test email to your own inbox before saving.')}
                     </p>
                   </div>
                   <Button
@@ -585,7 +592,7 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
                     disabled={testing || !smtpPass}
                   >
                     {testing ? <Loader2 className='size-3.5 animate-spin' /> : <Mail className='size-3.5' />}
-                    {testing ? 'Testing…' : t.signup.testEmail}
+                    {testing ? String(t.dashboard.testing || 'Testing…') : t.signup.testEmail}
                   </Button>
                 </div>
 
@@ -610,7 +617,7 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
                 <SettingsSaveBar
                   saving={saving}
                   onSave={() => void handleSave()}
-                  label='Save email settings'
+                  label={t.dashboard.saveEmailSettings || 'Save email settings'}
                 />
               </CardContent>
             </Card>
@@ -621,9 +628,9 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
               <CardHeader>
                 <div className='flex items-start justify-between gap-2'>
                   <div>
-                    <CardTitle className='text-base'>CV attachment</CardTitle>
+                    <CardTitle className='text-base'>{String(t.dashboard.cvSection || 'CV attachment')}</CardTitle>
                     <CardDescription>
-                      This PDF is attached to every application email.
+                      {String(t.dashboard.cvSectionDesc || 'This PDF is attached to every application email.')}
                     </CardDescription>
                   </div>
                   <Badge
@@ -636,7 +643,7 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
                     )}
                   >
                     {cvPreview ? <CheckCircle2 className='size-3' /> : <XCircle className='size-3' />}
-                    {cvPreview ? 'Uploaded' : 'Missing'}
+                    {cvPreview ? String(t.dashboard.uploadedLabel || 'Uploaded') : String(t.dashboard.missingLabel || 'Missing')}
                   </Badge>
                 </div>
               </CardHeader>
@@ -647,9 +654,9 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
                   </div>
                   <div>
                     <p className='text-sm font-medium'>
-                      {cvFile ? cvFile.name : cvPreview ? 'Replace your CV' : 'Upload your CV'}
+                      {cvFile ? cvFile.name : cvPreview ? String(t.dashboard.replaceCv || 'Replace your CV') : String(t.dashboard.uploadCvLabel || 'Upload your CV')}
                     </p>
-                    <p className='mt-1 text-xs text-muted-foreground'>PDF only · max 10 MB</p>
+                    <p className='mt-1 text-xs text-muted-foreground'>{String(t.dashboard.pdfOnlyMax || 'PDF only · max 10 MB')}</p>
                   </div>
                   <input
                     type='file'
@@ -658,7 +665,7 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
                     onChange={(event) => {
                       const file = event.target.files?.[0] || null
                       if (file && file.size > 10 * 1024 * 1024) {
-                        toast.error('CV must be smaller than 10 MB')
+                        toast.error(String(t.dashboard.cvSizeError || 'CV must be smaller than 10 MB'))
                         event.target.value = ''
                         return
                       }
@@ -674,7 +681,7 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
                         <FileText className='size-4 text-primary' />
                       </div>
                       <div>
-                        <p className='text-sm font-medium'>Current CV</p>
+                        <p className='text-sm font-medium'>{String(t.dashboard.currentCv || 'Current CV')}</p>
                         <p className='max-w-[260px] truncate text-xs text-muted-foreground'>
                           {cvPreview}
                         </p>
@@ -691,23 +698,19 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
                       ) : (
                         <ExternalLink className='size-3.5' />
                       )}
-                      Preview
+                      {String(t.dashboard.previewLabel || 'Preview')}
                     </Button>
                   </div>
                 ) : null}
 
                 <div className='rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground'>
-                  Tip: use the{' '}
-                  <Link
-                    href='/dashboard/cv-builder'
-                    className='text-primary underline underline-offset-2'
-                  >
-                    CV Builder
-                  </Link>{' '}
-                  to create a new ATS-friendly CV, then upload the exported PDF here.
+                  {String(t.dashboard.cvBuilderTip || 'Tip: use the CV Builder to create a new ATS-friendly CV, then upload the exported PDF here.').replace(
+                    '{cvBuilder}',
+                    t.cvBuilder.title
+                  )}
                 </div>
 
-                <SettingsSaveBar saving={saving} onSave={() => void handleSave()} label='Save CV' />
+                <SettingsSaveBar saving={saving} onSave={() => void handleSave()} label={t.dashboard.saveCvLabel || 'Save CV'} />
               </CardContent>
             </Card>
           ) : null}
@@ -715,14 +718,14 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
           {active === 'appearance' ? (
             <Card>
               <CardHeader>
-                <CardTitle className='text-base'>Appearance</CardTitle>
+                <CardTitle className='text-base'>{String(t.dashboard.appearanceSection || 'Appearance')}</CardTitle>
                 <CardDescription>
-                  Choose how the dashboard looks and which language Ceefy uses.
+                  {String(t.dashboard.appearanceSectionDesc || 'Choose how the dashboard looks and which language Ceefy uses.')}
                 </CardDescription>
               </CardHeader>
               <CardContent className='space-y-6'>
                 <section className='space-y-3'>
-                  <Label>Theme</Label>
+                  <Label>{String(t.dashboard.themeLabel || 'Theme')}</Label>
                   <div className='grid gap-3 sm:grid-cols-3'>
                     {themeOptions.map((option) => (
                       <button
@@ -751,7 +754,7 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
                 <Separator />
 
                 <section className='space-y-3'>
-                  <Label>Interface language</Label>
+                  <Label>{String(t.dashboard.interfaceLanguage || 'Interface language')}</Label>
                   <div className='grid gap-3 sm:grid-cols-2'>
                     {[
                       { value: 'id' as const, label: 'Bahasa Indonesia', hint: 'Indonesian' },
@@ -807,7 +810,7 @@ export default function SettingsPage({ config, onConfigUpdate }: SettingsPagePro
                 <SettingsSaveBar
                   saving={saving}
                   onSave={() => void handleSave()}
-                  label='Save preferences'
+                  label={t.dashboard.savePreferences || 'Save preferences'}
                 />
               </CardContent>
             </Card>

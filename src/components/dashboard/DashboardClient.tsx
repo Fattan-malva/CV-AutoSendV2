@@ -54,8 +54,11 @@ import { useI18n } from '@/lib/i18n-context'
 import { getPlanLimit, getPlanLabel, isUnlimited } from '@/lib/plans'
 import { useProcessing } from '@/lib/processing-context'
 import { cn, formatDate, formatNumber } from '@/lib/utils'
-import { StatusBadge } from './application-status'
+import type id from '@/i18n/id'
 import type { BulkItem } from '@/lib/processing-context'
+import { StatusBadge } from './application-status'
+
+type Translations = typeof id
 
 function GrowableTextarea({
   value,
@@ -147,11 +150,13 @@ function UsageCard({
   sendUsed,
   plan,
   onUpgrade,
+  t,
 }: {
   analyzeUsed: number
   sendUsed: number
   plan: Parameters<typeof getPlanLimit>[0]
   onUpgrade: () => void
+  t: Translations
 }) {
   const unlimited = isUnlimited(plan)
   const limit = getPlanLimit(plan)
@@ -164,10 +169,10 @@ function UsageCard({
       <CardHeader>
         <CardTitle className='flex items-center gap-2 text-base'>
           <Zap className='size-4 text-primary' />
-          Usage & plan
+          {String(t.dashboard?.usageTitle || 'Usage & plan')}
         </CardTitle>
         <CardDescription>
-          Your monthly AI analyses and email sends.
+          {String(t.dashboard?.usageDesc || 'Your monthly AI analyses and email sends.')}
         </CardDescription>
         <CardAction>
           <Badge variant={unlimited ? 'default' : 'secondary'} className='uppercase'>
@@ -179,10 +184,12 @@ function UsageCard({
         <div className='space-y-2'>
           <div className='flex items-center justify-between text-xs'>
             <span className='flex items-center gap-1.5 font-medium'>
-              <Sparkles className='size-3.5 text-primary' /> AI analyses
+              <Sparkles className='size-3.5 text-primary' /> {String(t.dashboard?.aiAnalyses || 'AI analyses')}
             </span>
             <span className='text-muted-foreground'>
-              {unlimited ? `${analyzeUsed} used · unlimited` : `${analyzeUsed} / ${limit}`}
+              {unlimited
+                ? `${analyzeUsed} ${String(t.dashboard?.usageUsed || 'used').replace('{count}', '')} · ${String(t.dashboard?.unlimitedAccess || 'unlimited')}`
+                : `${analyzeUsed} ${String(t.dashboard?.of || 'of')} ${limit}`}
             </span>
           </div>
           <Progress value={analyzePercent} />
@@ -191,10 +198,12 @@ function UsageCard({
         <div className='space-y-2'>
           <div className='flex items-center justify-between text-xs'>
             <span className='flex items-center gap-1.5 font-medium'>
-              <Send className='size-3.5 text-primary' /> Email sends
+              <Send className='size-3.5 text-primary' /> {String(t.dashboard?.emailSends || 'Email sends')}
             </span>
             <span className='text-muted-foreground'>
-              {unlimited ? `${sendUsed} used · unlimited` : `${sendUsed} / ${limit}`}
+              {unlimited
+                ? `${sendUsed} ${String(t.dashboard?.usageUsed || 'used').replace('{count}', '')} · ${String(t.dashboard?.unlimitedAccess || 'unlimited')}`
+                : `${sendUsed} ${String(t.dashboard?.of || 'of')} ${limit}`}
             </span>
           </div>
           <Progress
@@ -208,21 +217,21 @@ function UsageCard({
         {unlimited ? (
           <div className='rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs'>
             <div className='flex items-center gap-2 font-medium text-emerald-600 dark:text-emerald-400'>
-              <CheckCircle2 className='size-4' /> Unlimited access active
+              <CheckCircle2 className='size-4' /> {String(t.dashboard?.unlimitedAccessActive || 'Unlimited access active')}
             </div>
             <p className='mt-1 text-muted-foreground'>
-              Enjoy unlimited analyses and sends for your job search.
+              {String(t.dashboard?.unlimitedDesc || 'Enjoy unlimited analyses and sends for your job search.')}
             </p>
           </div>
         ) : (
           <div className='space-y-3'>
             <div className='flex items-center justify-between rounded-lg border bg-muted/40 px-3 py-2 text-xs'>
-              <span className='text-muted-foreground'>Analyses remaining</span>
+              <span className='text-muted-foreground'>{String(t.dashboard?.analysesRemainingLabel || 'Analyses remaining')}</span>
               <span className='font-semibold'>{formatNumber(remaining)}</span>
             </div>
             <Button onClick={onUpgrade} className='w-full'>
               <Sparkles className='size-4' />
-              Upgrade plan
+              {String(t.dashboard?.upgradePlan || 'Upgrade plan')}
             </Button>
           </div>
         )}
@@ -264,15 +273,15 @@ function ChartTooltip({
   )
 }
 
-function ActivityChart({ data }: { data: { day: string; applications: number; approved: number }[] }) {
+function ActivityChart({ data, t }: { data: { day: string; applications: number; approved: number }[]; t: Translations }) {
   return (
     <Card className='h-full'>
       <CardHeader>
-        <CardTitle className='text-base'>Application activity</CardTitle>
-        <CardDescription>Applications sent over the last 7 days.</CardDescription>
+        <CardTitle className='text-base'>{String(t.dashboard?.activityTitle || 'Application activity')}</CardTitle>
+        <CardDescription>{String(t.dashboard?.activityDesc || 'Applications sent over the last 7 days.')}</CardDescription>
         <CardAction>
           <Badge variant='outline' className='gap-1.5'>
-            <Activity className='size-3' /> Live
+            <Activity className='size-3' /> {String(t.dashboard?.live || 'Live')}
           </Badge>
         </CardAction>
       </CardHeader>
@@ -309,7 +318,7 @@ function ActivityChart({ data }: { data: { day: string; applications: number; ap
               <Area
                 type='monotone'
                 dataKey='applications'
-                name='Sent'
+                name={String(t.dashboard?.chartSent || 'Sent')}
                 stroke='var(--chart-1)'
                 strokeWidth={2}
                 fill='url(#fillApplications)'
@@ -317,7 +326,7 @@ function ActivityChart({ data }: { data: { day: string; applications: number; ap
               <Area
                 type='monotone'
                 dataKey='approved'
-                name='Approved'
+                name={String(t.dashboard?.chartApproved || 'Approved')}
                 stroke='var(--chart-2)'
                 strokeWidth={2}
                 fill='url(#fillApproved)'
@@ -330,11 +339,11 @@ function ActivityChart({ data }: { data: { day: string; applications: number; ap
   )
 }
 
-function UploadStatusBadge({ item }: { item: BulkItem }) {
+function UploadStatusBadge({ item, t }: { item: BulkItem; t: Translations }) {
   if (item.sending) {
     return (
       <Badge variant='secondary' className='gap-1 text-[10px]'>
-        <Loader2 className='size-3 animate-spin' /> Sending
+        <Loader2 className='size-3 animate-spin' /> {String(t.dashboard?.statusSending || 'Sending')}
       </Badge>
     )
   }
@@ -342,31 +351,31 @@ function UploadStatusBadge({ item }: { item: BulkItem }) {
     case 'analyzing':
       return (
         <Badge variant='secondary' className='gap-1 text-[10px]'>
-          <Loader2 className='size-3 animate-spin' /> Analyzing
+          <Loader2 className='size-3 animate-spin' /> {String(t.dashboard?.statusAnalyzing || 'Analyzing')}
         </Badge>
       )
     case 'done':
       return (
         <Badge className='gap-1 border-transparent bg-emerald-500/10 text-[10px] text-emerald-600 dark:text-emerald-400'>
-          <CheckCircle2 className='size-3' /> Ready
+          <CheckCircle2 className='size-3' /> {String(t.dashboard?.statusReady || 'Ready')}
         </Badge>
       )
     case 'sent':
       return (
         <Badge className='gap-1 border-transparent bg-primary/10 text-[10px] text-primary'>
-          <Send className='size-3' /> Sent
+          <Send className='size-3' /> {String(t.dashboard?.statusSent || 'Sent')}
         </Badge>
       )
     case 'error':
       return (
         <Badge variant='destructive' className='gap-1 text-[10px]'>
-          <AlertCircle className='size-3' /> Failed
+          <AlertCircle className='size-3' /> {String(t.dashboard?.statusFailed || 'Failed')}
         </Badge>
       )
     default:
       return (
         <Badge variant='outline' className='gap-1 text-[10px]'>
-          <Paperclip className='size-3' /> Pending
+          <Paperclip className='size-3' /> {String(t.dashboard?.statusPending || 'Pending')}
         </Badge>
       )
   }
@@ -472,22 +481,26 @@ export default function DashboardClient() {
     <div className='flex flex-col gap-4 md:gap-6'>
       <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
         <div>
-          <h2 className='text-2xl font-semibold tracking-tight'>Welcome back, {firstName}</h2>
+          <h2 className='text-2xl font-semibold tracking-tight'>
+            {t.dashboard.welcome.replace('{name}', firstName)}
+          </h2>
           <p className='text-sm text-muted-foreground'>
             {items.length > 0
-              ? `${items.length} brochure${items.length > 1 ? 's' : ''} in your queue — review and send when ready.`
-              : 'Upload a job brochure to generate an application with AI.'}
+              ? t.dashboard.welcomeSubtitleQueue
+                  .replace('{count}', String(items.length))
+                  .replace('{plural}', items.length > 1 ? 's' : '')
+              : t.dashboard.welcomeSubtitleEmpty}
           </p>
         </div>
         <div className='flex items-center gap-2'>
           <Button variant='outline' asChild>
             <Link href='/dashboard/history'>
-              <Activity className='size-4' /> Applications
+              <Activity className='size-4' /> {t.dashboard.history}
             </Link>
           </Button>
           <Button asChild>
             <Link href='/dashboard/cv-builder'>
-              <FileText className='size-4' /> CV Builder
+              <FileText className='size-4' /> {t.cvBuilder.title}
             </Link>
           </Button>
         </div>
@@ -495,36 +508,38 @@ export default function DashboardClient() {
 
       <div className='grid gap-4 sm:grid-cols-2 xl:grid-cols-4'>
         <StatCard
-          label='Total applications'
+          label={String(t.dashboard.statTotalApplications || 'Total applications')}
           value={formatNumber(logs.length)}
-          hint='All applications sent so far'
+          hint={String(t.dashboard.statTotalHint || 'All applications sent so far')}
           icon={Send}
           accent
         />
         <StatCard
-          label='This month'
+          label={String(t.dashboard.statThisMonth || 'This month')}
           value={formatNumber(stats.thisMonth)}
-          hint='Applications sent this month'
+          hint={String(t.dashboard.statThisMonthHint || 'Applications sent this month')}
           icon={Activity}
           trend={stats.trend}
         />
         <StatCard
-          label='Success rate'
+          label={String(t.dashboard.statSuccessRate || 'Success rate')}
           value={`${stats.successRate}%`}
-          hint='Sent or approved applications'
+          hint={String(t.dashboard.statSuccessRateHint || 'Sent or approved applications')}
           icon={CheckCircle2}
         />
         <StatCard
-          label='In queue'
+          label={String(t.dashboard.statInQueue || 'In queue')}
           value={formatNumber(items.length)}
-          hint={`${pendingCount} pending · ${doneCount} ready to send`}
+          hint={t.dashboard.statInQueueHint
+            .replace('{pending}', String(pendingCount))
+            .replace('{done}', String(doneCount))}
           icon={Inbox}
         />
       </div>
 
       <div className='grid gap-4 lg:grid-cols-7'>
         <div className='lg:col-span-4'>
-          <ActivityChart data={chartData} />
+          <ActivityChart data={chartData} t={t} />
         </div>
         <div className='lg:col-span-3'>
           <UsageCard
@@ -532,6 +547,7 @@ export default function DashboardClient() {
             sendUsed={config.usageSend || 0}
             plan={plan}
             onUpgrade={() => setUpgradeOpen(true)}
+            t={t}
           />
         </div>
       </div>
@@ -540,10 +556,10 @@ export default function DashboardClient() {
         <CardHeader>
           <CardTitle className='flex items-center gap-2 text-base'>
             <Upload className='size-4 text-primary' />
-            Upload brochures
+            {String(t.dashboard.uploadTitle || 'Upload brochures')}
           </CardTitle>
           <CardDescription>
-            Drop job brochure images or PDFs. AI extracts the company, role, and writes your email.
+            {String(t.dashboard.uploadDesc || 'Drop job brochure images or PDFs. AI extracts the company, role, and writes your email.')}
           </CardDescription>
           <CardAction>
             <Badge variant='outline'>{items.length} file{items.length === 1 ? '' : 's'}</Badge>
@@ -670,12 +686,12 @@ export default function DashboardClient() {
                             <span className='max-w-[220px] truncate text-sm font-medium sm:max-w-md'>
                               {item.file.name}
                             </span>
-                            <UploadStatusBadge item={item} />
+                            <UploadStatusBadge item={item} t={t} />
                           </div>
                           <p className='mt-0.5 truncate text-xs text-muted-foreground'>
                             {item.error ||
                               (item.status === 'done' || item.status === 'sent'
-                                ? `${item.editable.nama_perusahaan || 'Company'} · ${item.editable.posisi || 'Position'}`
+                                ? `${item.editable.nama_perusahaan || t.dashboard.unknownCompany} · ${item.editable.posisi || t.dashboard.unknownPosition}`
                                 : `${(item.file.size / 1024 / 1024).toFixed(2)} MB · ${
                                     item.file.type || 'document'
                                   }`)}
@@ -695,7 +711,7 @@ export default function DashboardClient() {
                         onClick={() => removeItem(item.id)}
                       >
                         <X className='size-4' />
-                        <span className='sr-only'>Remove file</span>
+                        <span className='sr-only'>{t.dashboard.removeFile}</span>
                       </Button>
                     </div>
 
@@ -811,11 +827,8 @@ export default function DashboardClient() {
                             <div className='flex flex-wrap items-center justify-between gap-2 border-t pt-3'>
                               {!config.smtpPass || !config.cvPath ? (
                                 <p className='text-xs text-amber-600 dark:text-amber-400'>
-                                  Complete SMTP and CV setup in{' '}
-                                  <Link href='/dashboard/settings' className='underline'>
-                                    settings
-                                  </Link>{' '}
-                                  before sending.
+                                  {t.dashboard.completeSetup
+                                    .replace('{settings}', t.dashboard.settings)}
                                 </p>
                               ) : (
                                 <span />
@@ -876,12 +889,12 @@ export default function DashboardClient() {
 
       <Card>
         <CardHeader>
-          <CardTitle className='text-base'>Recent applications</CardTitle>
-          <CardDescription>Your latest sent applications and their status.</CardDescription>
+          <CardTitle className='text-base'>{String(t.dashboard.recentApps || 'Recent applications')}</CardTitle>
+          <CardDescription>{String(t.dashboard.recentAppsDesc || 'Your latest sent applications and their status.')}</CardDescription>
           <CardAction>
             <Button variant='ghost' size='sm' asChild>
               <Link href='/dashboard/history'>
-                View all <ArrowRight className='size-3.5' />
+                {String(t.dashboard.viewAll || 'View all')} <ArrowRight className='size-3.5' />
               </Link>
             </Button>
           </CardAction>
@@ -892,9 +905,9 @@ export default function DashboardClient() {
               <div className='flex size-10 items-center justify-center rounded-full bg-muted'>
                 <Send className='size-4 text-muted-foreground' />
               </div>
-              <p className='text-sm font-medium'>No applications yet</p>
+              <p className='text-sm font-medium'>{String(t.dashboard.noAppsYet || 'No applications yet')}</p>
               <p className='text-xs text-muted-foreground'>
-                Analyze a brochure and send your first application.
+                {String(t.dashboard.noAppsDesc || 'Analyze a brochure and send your first application.')}
               </p>
             </div>
           ) : (
@@ -908,9 +921,9 @@ export default function DashboardClient() {
                     {log.perusahaan?.slice(0, 2) || '—'}
                   </div>
                   <div className='min-w-0 flex-1'>
-                    <p className='truncate text-sm font-medium'>{log.perusahaan || 'Unknown company'}</p>
+                    <p className='truncate text-sm font-medium'>{log.perusahaan || t.dashboard.unknownCompany}</p>
                     <p className='truncate text-xs text-muted-foreground'>
-                      {log.posisi || 'Position'} · {log.email || 'No recipient'}
+                      {log.posisi || t.dashboard.unknownPosition} · {log.email || t.dashboard.noRecipient}
                     </p>
                   </div>
                   <StatusBadge status={log.status} />

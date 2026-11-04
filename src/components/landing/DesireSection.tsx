@@ -106,7 +106,7 @@ export default function DesireSection() {
                 {allCards.map((g, i) => {
                   const Icon = iconMap[i % iconMap.length]
                   return (
-                    <div key={i} className="desire-card p-[1px] rounded-[2rem] bg-gradient-to-b from-white/10 to-white/[0.02]">
+                    <div key={i} className="desire-card p-[1px] rounded-[2rem] bg-gradient-to-b from-foreground/10 to-foreground/[0.02]">
                       <div className="rounded-[calc(2rem-1px)] bg-card p-8 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] flex items-start gap-5">
                         <div className="w-12 h-12 rounded-2xl bg-brand/10 flex items-center justify-center shrink-0">
                           <Icon size={24} className="text-brand" weight="duotone" />

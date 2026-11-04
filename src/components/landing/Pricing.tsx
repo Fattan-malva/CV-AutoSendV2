@@ -100,8 +100,8 @@ export default function Pricing({ onOpenAuth }: PricingProps) {
               <div
                 className={`p-[1px] rounded-[2rem] h-full transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:-translate-y-2 ${
                   tier.featured
-                    ? 'bg-gradient-to-b from-brand/40 via-brand/20 to-white/5'
-                    : 'bg-gradient-to-b from-white/10 to-white/[0.02]'
+                    ? 'bg-gradient-to-b from-brand/40 via-brand/20 to-foreground/5'
+                    : 'bg-gradient-to-b from-foreground/10 to-foreground/[0.02]'
                 }`}
               >
                 <div className="rounded-[calc(2rem-1px)] bg-card p-8 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] h-full flex flex-col">

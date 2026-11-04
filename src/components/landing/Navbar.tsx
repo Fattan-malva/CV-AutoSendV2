@@ -26,7 +26,7 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
   return (
     <>
       <nav className="fixed top-0 left-0 right-0 z-50 flex justify-center mt-6 px-4">
-        <div className="flex items-center justify-between w-max min-w-[320px] px-5 py-2.5 rounded-full bg-[#0A0A0A]/80 backdrop-blur-2xl border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]">
+        <div className="flex items-center justify-between w-max min-w-[320px] px-5 py-2.5 rounded-full bg-background/80 backdrop-blur-2xl border border-border shadow-[inset_0_1px_1px_rgba(0,0,0,0.2)] transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]">
           <Link href="/" className="flex items-center gap-3 mr-6">
             <img
               src="/icons.png"
@@ -34,22 +34,22 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
               className="w-8 h-8 object-contain"
             />
 
-            <span className="text-sm font-serif font-semibold text-white/95 tracking-tight">
+            <span className="text-sm font-serif font-semibold text-foreground tracking-tight">
               ceefy
             </span>
           </Link>
 
           <div className="hidden md:flex items-center gap-5">
-            <Link href="/#features" className="text-xs text-white/50 hover:text-white transition-colors duration-300">
+            <Link href="/#features" className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-300">
               {t.landing.featuresTitle}
             </Link>
-            <Link href="/#why-different" className="text-xs text-white/50 hover:text-white transition-colors duration-300">
+            <Link href="/#why-different" className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-300">
               {t.landing.desireLabel}
             </Link>
-            <Link href="/#pricing" className="text-xs text-white/50 hover:text-white transition-colors duration-300">
+            <Link href="/#pricing" className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-300">
               {t.landing.pricingTitle}
             </Link>
-            <Link href="/#demo" className="text-xs text-white/50 hover:text-white transition-colors duration-300">
+            <Link href="/#demo" className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-300">
               {t.demo.label}
             </Link>
           </div>
@@ -57,7 +57,7 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setLocale(locale === 'id' ? 'en' : 'id')}
-              className="hidden md:inline-flex text-xs text-white/50 hover:text-white transition-colors duration-300 w-8 h-8 items-center justify-center rounded-full hover:bg-white/[0.06]"
+              className="hidden md:inline-flex text-xs text-muted-foreground hover:text-foreground transition-colors duration-300 w-8 h-8 items-center justify-center rounded-full hover:bg-accent"
             >
               {locale === 'id' ? 'EN' : 'ID'}
             </button>
@@ -65,14 +65,14 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
             {user ? (
               <Link
                 href="/dashboard"
-                className="hidden md:inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white text-[#030303] text-xs font-medium hover:opacity-90 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
+                className="hidden md:inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
               >
                 <span>{t.nav.dashboard}</span>
               </Link>
             ) : (
               <button
                 onClick={onOpenAuth}
-                className="hidden md:inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white text-[#030303] text-xs font-medium hover:opacity-90 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
+                className="hidden md:inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-medium hover:opacity-90 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
               >
                 <span>{t.nav.login}</span>
               </button>
@@ -104,7 +104,7 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
       {menuOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div
-            className="absolute inset-0 bg-[#030303]/80 backdrop-blur-3xl"
+            className="absolute inset-0 bg-overlay/80 backdrop-blur-3xl"
             onClick={() => setMenuOpen(false)}
           />
           <div
@@ -134,14 +134,14 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
                   <Link
                     href={item.href}
                     onClick={() => setMenuOpen(false)}
-                    className="text-3xl font-serif text-white/95 hover:text-indigo-400 transition-colors duration-300"
+                    className="text-3xl font-serif text-foreground/95 hover:text-primary transition-colors duration-300"
                   >
                     {item.label}
                   </Link>
                 ) : (
                   <button
                     onClick={item.onClick}
-                    className="text-3xl font-serif text-white/95 hover:text-indigo-400 transition-colors duration-300"
+                    className="text-3xl font-serif text-foreground/95 hover:text-primary transition-colors duration-300"
                   >
                     {item.label}
                   </button>
@@ -158,7 +158,7 @@ export default function Navbar({ onOpenAuth }: NavbarProps) {
             >
               <button
                 onClick={() => { setLocale(locale === 'id' ? 'en' : 'id'); setMenuOpen(false) }}
-                className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors text-xs font-medium"
+                className="w-10 h-10 rounded-full border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors text-xs font-medium"
               >
                 {locale === 'id' ? 'EN' : 'ID'}
               </button>

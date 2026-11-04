@@ -254,39 +254,33 @@ export function ProcessingProvider({
   }, [updateItem, onConfigUpdate, getCvDataPdfUrl])
 
   const analyzeAllPending = useCallback(() => {
-    setItems((prev) => {
-      const pending = prev.filter((i) => i.status === 'pending')
-      if (pending.length === 0) return prev
+    const pending = items.filter((i) => i.status === 'pending')
+    if (pending.length === 0) return
 
-      const limits = planLimits[configRef.current?.plan || 'free']
-      const remaining = limits.analyze - (configRef.current?.usageAnalyze || 0)
-      if (remaining <= 0) { setUpgradeOpen(true); return prev }
+    const limits = planLimits[configRef.current?.plan || 'free']
+    const remaining = limits.analyze - (configRef.current?.usageAnalyze || 0)
+    if (remaining <= 0) { setUpgradeOpen(true); return }
 
-      setBulkRunning(true)
-      setBulkProgress({ done: 0, total: pending.length })
+    setBulkRunning(true)
+    setBulkProgress({ done: 0, total: pending.length })
 
-      Promise.allSettled(pending.map(async (item) => {
-        await analyzeSingle(item)
-        setBulkProgress((p) => ({ ...p, done: p.done + 1 }))
-      })).finally(() => {
-        setBulkRunning(false)
-      })
-
-      return prev
+    Promise.allSettled(pending.map(async (item) => {
+      await analyzeSingle(item)
+      setBulkProgress((p) => ({ ...p, done: p.done + 1 }))
+    })).finally(() => {
+      setBulkRunning(false)
     })
-  }, [analyzeSingle])
+  }, [analyzeSingle, items, setUpgradeOpen])
 
   const sendAllDone = useCallback(() => {
-    setItems((prev) => {
-      const done = prev.filter((i) => i.status === 'done' && i.selected)
-      if (done.length === 0) return prev
-      setSendingBulk(true)
-      Promise.allSettled(done.map((item) => sendSingleItem(item))).finally(() => {
-        setSendingBulk(false)
-      })
-      return prev
+    const done = items.filter((i) => i.status === 'done' && i.selected)
+    if (done.length === 0) return
+
+    setSendingBulk(true)
+    Promise.allSettled(done.map((item) => sendSingleItem(item))).finally(() => {
+      setSendingBulk(false)
     })
-  }, [sendSingleItem])
+  }, [sendSingleItem, items])
 
   const removeItem = useCallback((id: string) => {
     setItems((prev) => prev.filter((i) => i.id !== id))

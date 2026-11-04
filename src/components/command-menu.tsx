@@ -33,7 +33,7 @@ export function CommandMenu() {
   const { open, setOpen } = useSearch()
   const router = useRouter()
   const { setTheme } = useTheme()
-  const { setLocale } = useI18n()
+  const { t, setLocale } = useI18n()
   const { setUpgradeOpen } = useProcessing()
 
   const runCommand = (command: () => void) => {
@@ -43,66 +43,66 @@ export function CommandMenu() {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder='Type a command or search…' />
+      <CommandInput placeholder={t.command.placeholder} />
       <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
-        <CommandGroup heading='Navigation'>
+        <CommandEmpty>{t.command.noResults}</CommandEmpty>
+        <CommandGroup heading={t.command.groupNavigation}>
           <CommandItem onSelect={() => runCommand(() => router.push('/dashboard'))}>
             <LayoutDashboard />
-            <span>Dashboard</span>
+            <span>{t.command.dashboard}</span>
             <CommandShortcut>⌘D</CommandShortcut>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push('/dashboard/history'))}>
             <Activity />
-            <span>Applications</span>
+            <span>{t.command.applications}</span>
             <CommandShortcut>⌘A</CommandShortcut>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push('/dashboard/cv-builder'))}>
             <FileText />
-            <span>CV Builder</span>
+            <span>{t.command.cvBuilder}</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push('/dashboard/settings'))}>
             <Settings />
-            <span>Settings</span>
+            <span>{t.command.settings}</span>
             <CommandShortcut>⌘S</CommandShortcut>
           </CommandItem>
         </CommandGroup>
         <CommandSeparator />
-        <CommandGroup heading='Actions'>
+        <CommandGroup heading={t.command.groupActions}>
           <CommandItem onSelect={() => runCommand(() => setUpgradeOpen(true))}>
             <Sparkles />
-            <span>Upgrade plan</span>
+            <span>{t.command.upgradePlan}</span>
             <ArrowRight className='ms-auto' />
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push('/'))}>
             <Globe />
-            <span>Back to landing page</span>
+            <span>{t.command.backToLanding}</span>
           </CommandItem>
         </CommandGroup>
         <CommandSeparator />
-        <CommandGroup heading='Theme'>
+        <CommandGroup heading={t.command.groupTheme}>
           <CommandItem onSelect={() => runCommand(() => setTheme('light'))}>
             <Sun />
-            <span>Light</span>
+            <span>{t.command.light}</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => setTheme('dark'))}>
             <Moon />
-            <span>Dark</span>
+            <span>{t.command.dark}</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => setTheme('system'))}>
             <Laptop />
-            <span>System</span>
+            <span>{t.command.system}</span>
           </CommandItem>
         </CommandGroup>
         <CommandSeparator />
-        <CommandGroup heading='Language'>
+        <CommandGroup heading={t.command.groupLanguage}>
           <CommandItem onSelect={() => runCommand(() => setLocale('id'))}>
             <Languages />
-            <span>Bahasa Indonesia</span>
+            <span>{t.command.bahasaIndonesia}</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => setLocale('en'))}>
             <Languages />
-            <span>English</span>
+            <span>{t.command.english}</span>
           </CommandItem>
         </CommandGroup>
       </CommandList>

@@ -40,7 +40,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   if (!user) return null
 
   return (
-    <SidebarProvider defaultOpen>
+    <SidebarProvider defaultOpen className='h-dvh overflow-hidden'>
       <AppSidebar onLogout={() => setLogoutOpen(true)} onUpgrade={() => setUpgradeOpen(true)} />
       <SidebarInset className='min-w-0 overflow-x-hidden'>
         <Header

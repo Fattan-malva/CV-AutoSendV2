@@ -24,6 +24,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/lib/auth-context'
+import { useI18n } from '@/lib/i18n-context'
 import CvEditor from './CvEditor'
 import CvPreview from './CvPreview'
 import { cvHTML, defaultCvData, templateLabels } from '@/services/cv.service'
@@ -31,6 +32,7 @@ import type { CvData, CvTemplateId } from '@/types'
 
 export default function CvBuilderPage() {
   const { user } = useAuth()
+  const { t } = useI18n()
   const [cv, setCv] = useState<CvData>(defaultCvData)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -142,20 +144,24 @@ export default function CvBuilderPage() {
           setCv(translated)
           setLanguage(newLang)
           setDirty(false)
-          toast.success(`CV translated to ${newLang === 'id' ? 'Indonesian' : 'English'}`)
+          toast.success(
+            newLang === 'id'
+              ? String(t.dashboard.translatedToId || 'CV translated to Indonesian')
+              : String(t.dashboard.translatedToEn || 'CV translated to English')
+          )
         }
       } catch (error) {
         if (mountedRef.current) {
           setLanguage(language)
           setCv(currentCv)
-          toast.error(error instanceof Error ? error.message : 'Translation failed')
+          toast.error(error instanceof Error ? error.message : String(t.dashboard.translationFailed || 'Translation failed'))
         }
       } finally {
         translatingRef.current = false
         if (mountedRef.current) setTranslating(false)
       }
     },
-    [cv, language, user, fetchWithRetry]
+    [cv, language, user, fetchWithRetry, t]
   )
 
   const handleChange = useCallback((next: CvData) => {
@@ -176,15 +182,15 @@ export default function CvBuilderPage() {
         },
         body: JSON.stringify({ cvData: { ...cv, language } }),
       })
-      if (!res.ok) throw new Error('Failed to save CV')
+      if (!res.ok) throw new Error(String(t.dashboard.failedToSaveCv || 'Failed to save CV'))
       setDirty(false)
-      toast.success('CV saved to your workspace')
+      toast.success(String(t.dashboard.cvSavedWorkspace || 'CV saved to your workspace'))
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to save CV')
+      toast.error(error instanceof Error ? error.message : String(t.dashboard.failedToSaveCv || 'Failed to save CV'))
     } finally {
       setSaving(false)
     }
-  }, [cv, language, user])
+  }, [cv, language, user, t])
 
   const handleDownloadPdf = useCallback(() => {
     const el = document.createElement('style')
@@ -273,34 +279,34 @@ export default function CvBuilderPage() {
       <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
         <div>
           <div className='flex items-center gap-2'>
-            <h2 className='text-2xl font-semibold tracking-tight'>CV Builder</h2>
+            <h2 className='text-2xl font-semibold tracking-tight'>{String(t.dashboard.cvBuilderTitle || 'CV Builder')}</h2>
             <Badge variant='outline' className='gap-1 text-[10px]'>
-              <Sparkles className='size-3 text-primary' /> AI assisted
+              <Sparkles className='size-3 text-primary' /> {String(t.dashboard.aiAssistedBadge || 'AI assisted')}
             </Badge>
             {dirty ? (
               <Badge variant='secondary' className='text-[10px]'>
-                Unsaved changes
+                {String(t.dashboard.unsavedChanges || 'Unsaved changes')}
               </Badge>
             ) : (
               <Badge
                 variant='secondary'
                 className='gap-1 border-transparent bg-emerald-500/10 text-[10px] text-emerald-600 dark:text-emerald-400'
               >
-                <CheckCircle2 className='size-3' /> Saved
+                <CheckCircle2 className='size-3' /> {String(t.dashboard.savedBadge || 'Saved')}
               </Badge>
             )}
           </div>
           <p className='text-sm text-muted-foreground'>
-            Create and customize your ATS-friendly CV with AI writing help.
+            {String(t.dashboard.cvBuilderDesc || 'Create and customize your ATS-friendly CV with AI writing help.')}
           </p>
         </div>
         <div className='flex items-center gap-2'>
           <Button variant='outline' onClick={handleDownloadPdf}>
-            <Download className='size-4' /> Download PDF
+            <Download className='size-4' /> {String(t.dashboard.downloadPdfLabel || 'Download PDF')}
           </Button>
           <Button onClick={() => void handleSave()} disabled={saving || !dirty}>
             {saving ? <Loader2 className='size-4 animate-spin' /> : <Save className='size-4' />}
-            {saving ? 'Saving…' : 'Save CV'}
+            {saving ? String(t.dashboard.savingLabel || 'Saving…') : String(t.dashboard.saveCvButton || 'Save CV')}
           </Button>
         </div>
       </div>
@@ -345,25 +351,25 @@ export default function CvBuilderPage() {
         {translating ? (
           <div className='flex items-center gap-2 rounded-full border bg-primary/5 px-3 py-1.5 text-xs text-primary'>
             <Loader2 className='size-3 animate-spin' />
-            Translating CV…
+            {String(t.dashboard.translatingCv || 'Translating CV…')}
           </div>
         ) : null}
 
         <div className='ms-auto flex items-center gap-1.5 text-xs text-muted-foreground'>
           <Sparkles className='size-3.5 text-primary' />
-          ATS-friendly templates
+          {String(t.dashboard.atsFriendlyTemplates || 'ATS-friendly templates')}
         </div>
       </div>
 
       <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
-        <Card className='max-h-[calc(100vh-16rem)] gap-0 overflow-hidden py-0'>
+        <Card className='h-[calc(100vh-16rem)] gap-0 overflow-hidden py-0'>
           <CardHeader className='border-b px-4 py-3'>
             <CardTitle className='flex items-center gap-2 text-sm'>
               <FileText className='size-4 text-primary' />
-              Editor
+              {String(t.dashboard.editorLabel || 'Editor')}
             </CardTitle>
             <CardDescription className='text-xs'>
-              Fill in your details — changes stay local until you save.
+              {String(t.dashboard.editorDesc || 'Fill in your details — changes stay local until you save.')}
             </CardDescription>
           </CardHeader>
           <CardContent className='overflow-y-auto p-3'>
@@ -376,11 +382,11 @@ export default function CvBuilderPage() {
           </CardContent>
         </Card>
 
-        <Card className='sticky top-20 max-h-[calc(100vh-7rem)] gap-0 self-start overflow-hidden py-0'>
+        <Card className='h-[calc(100vh-16rem)] gap-0 self-start overflow-hidden py-0'>
           <CardHeader className='border-b px-4 py-3'>
-            <CardTitle className='text-sm'>Live preview</CardTitle>
+            <CardTitle className='text-sm'>{String(t.dashboard.livePreviewLabel || 'Live preview')}</CardTitle>
             <CardDescription className='text-xs'>
-              This is how your CV looks when exported.
+              {String(t.dashboard.livePreviewDesc || 'This is how your CV looks when exported.')}
             </CardDescription>
             <CardAction>
               <Badge variant='outline' className='gap-1 text-[10px]'>

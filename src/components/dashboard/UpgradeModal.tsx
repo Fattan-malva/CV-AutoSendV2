@@ -30,7 +30,7 @@ const tiers = [
     descKey: 'pricingBasicDesc',
     icon: Zap,
     highlight: false,
-    features: ['20 AI analyses / month', '20 email sends / month', 'SMTP + CV upload', 'Application history'],
+    featureKeys: ['20 AI analyses / month', '20 email sends / month', 'SMTP + CV upload', 'Application history'],
   },
   {
     key: 'starter',
@@ -39,7 +39,7 @@ const tiers = [
     descKey: 'pricingStarterDesc',
     icon: Sparkles,
     highlight: true,
-    features: ['80 AI analyses / month', '80 email sends / month', 'CV builder + AI assist', 'Priority processing'],
+    featureKeys: ['80 AI analyses / month', '80 email sends / month', 'CV builder + AI assist', 'Priority processing'],
   },
   {
     key: 'pro',
@@ -48,7 +48,7 @@ const tiers = [
     descKey: 'pricingProDesc',
     icon: Crown,
     highlight: false,
-    features: ['Unlimited AI analyses', 'Unlimited email sends', 'All templates & AI tools', 'Priority support'],
+    featureKeys: ['Unlimited AI analyses', 'Unlimited email sends', 'All templates & AI tools', 'Priority support'],
   },
 ] as const
 
@@ -84,11 +84,11 @@ export default function UpgradeModal({ open, onClose }: UpgradeModalProps) {
       })
 
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Checkout failed')
+      if (!res.ok) throw new Error(data.error || t.dashboard.checkoutFailed)
 
       window.open(data.url, '_blank')
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Something went wrong')
+      setError(e instanceof Error ? e.message : t.dashboard.somethingWentWrong)
     } finally {
       setLoadingPlan(null)
     }
@@ -107,14 +107,16 @@ export default function UpgradeModal({ open, onClose }: UpgradeModalProps) {
           </DialogHeader>
           <div className='mt-4 flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
             <Badge variant='outline' className='gap-1.5'>
-              <span className='size-1.5 rounded-full bg-primary' /> Current plan:{' '}
+              <span className='size-1.5 rounded-full bg-primary' /> {t.dashboard.currentPlanLabel}{' '}
               {getPlanLabel(currentPlan)}
             </Badge>
             <span>
-              {unlimited ? 'Unlimited analyses · Unlimited sends' : `${currentLimit} analyses · ${currentLimit} sends`}
+              {unlimited
+                ? t.dashboard.unlimitedAnalysesSends
+                : t.dashboard.limitAnalysesSends.replace('{count}', String(currentLimit))}
             </span>
             <span className='text-muted-foreground/50'>·</span>
-            <span>Cancel anytime</span>
+            <span>{t.dashboard.cancelAnytime}</span>
           </div>
         </div>
 
@@ -131,7 +133,7 @@ export default function UpgradeModal({ open, onClose }: UpgradeModalProps) {
                 )}
               >
                 {tier.highlight ? (
-                  <Badge className='absolute -top-2.5 left-4 px-2 text-[10px]'>Most popular</Badge>
+                  <Badge className='absolute -top-2.5 left-4 px-2 text-[10px]'>{t.dashboard.mostPopularLabel}</Badge>
                 ) : null}
                 <div className='flex items-center gap-2'>
                   <div className='flex size-8 items-center justify-center rounded-lg border bg-background'>
@@ -153,7 +155,7 @@ export default function UpgradeModal({ open, onClose }: UpgradeModalProps) {
                 </div>
 
                 <ul className='mt-4 flex-1 space-y-2'>
-                  {tier.features.map((feature) => (
+                  {tier.featureKeys.map((feature) => (
                     <li key={feature} className='flex items-start gap-2 text-xs text-muted-foreground'>
                       <Check className='mt-0.5 size-3.5 shrink-0 text-emerald-500' />
                       {feature}
@@ -169,10 +171,10 @@ export default function UpgradeModal({ open, onClose }: UpgradeModalProps) {
                 >
                   {loading ? <Loader2 className='size-4 animate-spin' /> : null}
                   {tier.key === currentPlan
-                    ? 'Current plan'
+                    ? t.dashboard.currentPlanBtn
                     : loading
-                      ? 'Opening checkout…'
-                      : 'Choose plan'}
+                      ? t.dashboard.openingCheckout
+                      : t.dashboard.choosePlan}
                   {!loading && tier.key !== currentPlan ? <ArrowRight className='size-4' /> : null}
                 </Button>
               </div>
@@ -184,10 +186,10 @@ export default function UpgradeModal({ open, onClose }: UpgradeModalProps) {
           {error ? <p className='text-xs text-destructive'>{error}</p> : null}
           <div className='flex flex-wrap items-center justify-between gap-2'>
             <p className='text-[10px] text-muted-foreground'>
-              Secure checkout powered by LemonSqueezy. Taxes may apply.
+              {t.dashboard.secureCheckout}
             </p>
             <Button variant='ghost' size='sm' onClick={onClose}>
-              Maybe later
+              {t.dashboard.maybeLater}
             </Button>
           </div>
         </div>

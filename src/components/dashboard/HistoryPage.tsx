@@ -65,11 +65,7 @@ import { DataTableBulkActions, DataTableColumnHeader, DataTablePagination, DataT
 import { useApplicationLogs } from '@/hooks/use-application-logs'
 import { useI18n } from '@/lib/i18n-context'
 import { formatDate } from '@/lib/utils'
-import {
-  STATUS_CONFIG,
-  STATUS_OPTIONS,
-  StatusBadge,
-} from './application-status'
+import { StatusBadge, getStatusOptions } from './application-status'
 import type { ApplicationLog, AppStatus } from '@/types'
 
 const globalFilterFn: FilterFn<ApplicationLog> = (row, _columnId, filterValue) => {
@@ -87,6 +83,7 @@ function StatusCell({
   log: ApplicationLog
   onUpdate: (id: string, status: AppStatus) => Promise<void>
 }) {
+  const { t } = useI18n()
   const [updating, setUpdating] = useState(false)
 
   const handleUpdate = async (status: AppStatus) => {
@@ -94,9 +91,12 @@ function StatusCell({
     setUpdating(true)
     try {
       await onUpdate(log.id, status)
-      toast.success(`Status updated to ${STATUS_CONFIG[status].label}`)
+      const label = getStatusOptions(t).find((o) => o.value === status)?.label || status
+      toast.success(
+        String(t.dashboard.statusUpdated || 'Status updated').replace('{status}', label)
+      )
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to update status')
+      toast.error(error instanceof Error ? error.message : String(t.dashboard.failedToUpdate || 'Failed to update'))
     } finally {
       setUpdating(false)
     }
@@ -119,7 +119,7 @@ function StatusCell({
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='start' className='w-44'>
-        {STATUS_OPTIONS.map((option) => (
+        {getStatusOptions(t).map((option) => (
           <DropdownMenuItem
             key={option.value}
             onSelect={() => void handleUpdate(option.value)}
@@ -156,14 +156,14 @@ export default function HistoryPage() {
               (table.getIsSomePageRowsSelected() && 'indeterminate')
             }
             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-            aria-label='Select all'
+            aria-label={t.dashboard.selectAll}
           />
         ),
         cell: ({ row }) => (
           <Checkbox
             checked={row.getIsSelected()}
             onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label='Select row'
+            aria-label={t.dashboard.selectRow}
           />
         ),
         enableSorting: false,
@@ -171,7 +171,7 @@ export default function HistoryPage() {
       },
       {
         accessorKey: 'perusahaan',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Company' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={String(t.dashboard.fieldCompany || 'Company')} />,
         cell: ({ row }) => (
           <div className='flex items-center gap-2.5'>
             <div className='flex size-8 shrink-0 items-center justify-center rounded-lg border bg-muted/40 text-[10px] font-semibold uppercase'>
@@ -179,10 +179,10 @@ export default function HistoryPage() {
             </div>
             <div className='min-w-0'>
               <p className='max-w-[180px] truncate font-medium'>
-                {row.original.perusahaan || 'Unknown company'}
+                {row.original.perusahaan || t.dashboard.unknownCompany}
               </p>
               <p className='max-w-[180px] truncate text-xs text-muted-foreground'>
-                {row.original.posisi || 'Position'}
+                {row.original.posisi || t.dashboard.unknownPosition}
               </p>
             </div>
           </div>
@@ -190,14 +190,14 @@ export default function HistoryPage() {
       },
       {
         accessorKey: 'posisi',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Position' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={String(t.dashboard.fieldPosition || 'Position')} />,
         cell: ({ row }) => (
           <span className='max-w-[180px] truncate text-sm'>{row.original.posisi || '—'}</span>
         ),
       },
       {
         accessorKey: 'email',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Recipient' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={String(t.dashboard.fieldRecipient || 'Recipient')} />,
         cell: ({ row }) => (
           <span className='max-w-[220px] truncate text-sm text-muted-foreground'>
             {row.original.email || '—'}
@@ -206,7 +206,7 @@ export default function HistoryPage() {
       },
       {
         accessorKey: 'sentAt',
-        header: ({ column }) => <DataTableColumnHeader column={column} title='Date' />,
+        header: ({ column }) => <DataTableColumnHeader column={column} title={String(t.dashboard.fieldDate || 'Date')} />,
         cell: ({ row }) => (
           <span className='text-xs text-muted-foreground'>{formatDate(row.original.sentAt)}</span>
         ),
@@ -228,49 +228,51 @@ export default function HistoryPage() {
               <DropdownMenuTrigger asChild>
                 <Button variant='ghost' size='icon' className='size-8'>
                   <MoreHorizontal className='size-4' />
-                  <span className='sr-only'>Open menu</span>
+                  <span className='sr-only'>{t.dashboard.openMenu}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align='end' className='w-48'>
                 <DropdownMenuItem onSelect={() => setDetailsLog(log)}>
-                  <Eye /> View details
+                  <Eye /> {String(t.dashboard.viewDetails || 'View details')}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={() => {
                     void navigator.clipboard.writeText(log.email)
-                    toast.success('Recipient email copied')
+                    toast.success(String(t.dashboard.copyEmail || 'Recipient email copied'))
                   }}
                 >
-                  <Copy /> Copy email
+                  <Copy /> {String(t.dashboard.copyEmail || 'Copy email')}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={() => {
                     void navigator.clipboard.writeText(log.subjek)
-                    toast.success('Subject copied')
+                    toast.success(String(t.dashboard.copySubject || 'Subject copied'))
                   }}
                 >
-                  <Copy /> Copy subject
+                  <Copy /> {String(t.dashboard.copySubject || 'Copy subject')}
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <a href={`mailto:${log.email}?subject=${encodeURIComponent(log.subjek)}`}>
-                    <ExternalLink /> Open in mail app
+                    <ExternalLink /> {String(t.dashboard.openMailApp || 'Open in mail app')}
                   </a>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger>
-                    <Send /> Change status
+                    <Send /> {String(t.dashboard.changeStatus || 'Change status')}
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent>
-                    {STATUS_OPTIONS.map((option) => (
+                    {getStatusOptions(t).map((option) => (
                       <DropdownMenuItem
                         key={option.value}
                         onSelect={async () => {
                           try {
                             await updateStatus(log.id, option.value)
-                            toast.success(`Status updated to ${option.label}`)
+                            toast.success(
+                              t.dashboard.statusUpdated.replace('{status}', option.label)
+                            )
                           } catch (err) {
-                            toast.error(err instanceof Error ? err.message : 'Failed to update')
+                            toast.error(err instanceof Error ? err.message : String(t.dashboard.failedToUpdate || 'Failed to update'))
                           }
                         }}
                       >
@@ -286,7 +288,7 @@ export default function HistoryPage() {
         },
       },
     ],
-    [updateStatus]
+    [updateStatus, t]
   )
 
   const table = useReactTable({
@@ -313,10 +315,14 @@ export default function HistoryPage() {
     setBulkLoading(status)
     try {
       const count = await bulkUpdateStatus(selectedIds, status)
-      toast.success(`${count} application${count === 1 ? '' : 's'} updated`)
+      toast.success(
+        t.dashboard.appsUpdated
+          .replace('{count}', String(count))
+          .replace('{plural}', count === 1 ? '' : 's')
+      )
       table.resetRowSelection()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update applications')
+      toast.error(err instanceof Error ? err.message : String(t.dashboard.failedToUpdateApps || 'Failed to update applications'))
     } finally {
       setBulkLoading(null)
     }
@@ -332,13 +338,13 @@ export default function HistoryPage() {
         <div>
           <h2 className='text-2xl font-semibold tracking-tight'>{t.dashboard.history}</h2>
           <p className='text-sm text-muted-foreground'>
-            Track every application, update statuses, and follow up with recruiters.
+            {String(t.dashboard.historyDesc || 'Track every application, update statuses, and follow up with recruiters.')}
           </p>
         </div>
         <div className='flex items-center gap-2'>
           <Button variant='outline' size='sm' onClick={() => void reload()} disabled={loading}>
             <RefreshCw className={loading ? 'size-4 animate-spin' : 'size-4'} />
-            Refresh
+            {String(t.dashboard.refresh || 'Refresh')}
           </Button>
         </div>
       </div>
@@ -350,7 +356,7 @@ export default function HistoryPage() {
               <Send className='size-4 text-primary' />
             </div>
             <div>
-              <p className='text-xs text-muted-foreground'>Sent</p>
+              <p className='text-xs text-muted-foreground'>{String(t.dashboard.statSentLabel || 'Sent')}</p>
               <p className='text-lg font-semibold'>{totalSent}</p>
             </div>
           </CardContent>
@@ -361,7 +367,7 @@ export default function HistoryPage() {
               <ShieldCheck className='size-4 text-emerald-600 dark:text-emerald-400' />
             </div>
             <div>
-              <p className='text-xs text-muted-foreground'>Approved</p>
+              <p className='text-xs text-muted-foreground'>{String(t.dashboard.statApprovedLabel || 'Approved')}</p>
               <p className='text-lg font-semibold'>{totalApproved}</p>
             </div>
           </CardContent>
@@ -372,7 +378,7 @@ export default function HistoryPage() {
               <XCircle className='size-4 text-destructive' />
             </div>
             <div>
-              <p className='text-xs text-muted-foreground'>Failed</p>
+              <p className='text-xs text-muted-foreground'>{String(t.dashboard.statFailedLabel || 'Failed')}</p>
               <p className='text-lg font-semibold'>{totalFailed}</p>
             </div>
           </CardContent>
@@ -384,7 +390,7 @@ export default function HistoryPage() {
           <AlertCircle className='size-4' />
           {error}
           <Button variant='ghost' size='sm' className='ms-auto' onClick={() => void reload()}>
-            Retry
+            {String(t.dashboard.retry || 'Retry')}
           </Button>
         </div>
       ) : null}
@@ -393,12 +399,12 @@ export default function HistoryPage() {
         <CardContent className='space-y-4 p-4'>
           <DataTableToolbar
             table={table}
-            searchPlaceholder='Search company, role, email…'
+            searchPlaceholder={String(t.dashboard.searchPlaceholder || 'Search company, role, email…')}
             filters={[
               {
                 columnId: 'status',
                 title: 'Status',
-                options: STATUS_OPTIONS,
+                options: getStatusOptions(t),
               },
             ]}
           />
@@ -451,12 +457,14 @@ export default function HistoryPage() {
                           <Inbox className='size-5 text-muted-foreground' />
                         </div>
                         <p className='text-sm font-medium'>
-                          {logs.length === 0 ? 'No applications yet' : 'No matching applications'}
+                          {logs.length === 0
+                            ? String(t.dashboard.noAppsYetTable || 'No applications yet')
+                            : String(t.dashboard.noMatchingApps || 'No matching applications')}
                         </p>
                         <p className='text-xs text-muted-foreground'>
                           {logs.length === 0
-                            ? 'Analyze a brochure and send your first application.'
-                            : 'Try a different search or clear the filters.'}
+                            ? String(t.dashboard.noAppsTableDesc || 'Analyze a brochure and send your first application.')
+                            : String(t.dashboard.noMatchingDesc || 'Try a different search or clear the filters.')}
                         </p>
                         {logs.length > 0 ? (
                           <Button
@@ -468,7 +476,7 @@ export default function HistoryPage() {
                               table.setGlobalFilter('')
                             }}
                           >
-                            Clear filters
+                            {String(t.dashboard.clearFilters || 'Clear filters')}
                           </Button>
                         ) : null}
                       </div>
@@ -491,7 +499,7 @@ export default function HistoryPage() {
           onClick={() => void handleBulkUpdate('sent')}
         >
           {bulkLoading === 'sent' ? <Loader2 className='size-3.5 animate-spin' /> : <Send className='size-3.5' />}
-          Mark sent
+          {String(t.dashboard.markSent || 'Mark sent')}
         </Button>
         <Button
           size='sm'
@@ -504,7 +512,7 @@ export default function HistoryPage() {
           ) : (
             <ShieldCheck className='size-3.5' />
           )}
-          Approve
+          {String(t.dashboard.approve || 'Approve')}
         </Button>
         <Button
           size='sm'
@@ -517,7 +525,7 @@ export default function HistoryPage() {
           ) : (
             <ShieldX className='size-3.5' />
           )}
-          Reject
+          {String(t.dashboard.reject || 'Reject')}
         </Button>
       </DataTableBulkActions>
 
@@ -526,10 +534,10 @@ export default function HistoryPage() {
           <DialogHeader>
             <DialogTitle className='flex items-center gap-2'>
               <Mail className='size-4' />
-              Application details
+              {String(t.dashboard.applicationDetails || 'Application details')}
             </DialogTitle>
             <DialogDescription>
-              {detailsLog?.perusahaan || 'Unknown company'} · {detailsLog?.posisi || 'Position'}
+              {detailsLog?.perusahaan || t.dashboard.unknownCompany} · {detailsLog?.posisi || t.dashboard.unknownPosition}
             </DialogDescription>
           </DialogHeader>
           {detailsLog ? (
@@ -541,24 +549,24 @@ export default function HistoryPage() {
               <Separator />
               <div className='grid gap-3 text-sm'>
                 <div>
-                  <Label className='text-xs text-muted-foreground'>Company</Label>
+                  <Label className='text-xs text-muted-foreground'>{String(t.dashboard.fieldCompany || 'Company')}</Label>
                   <p className='font-medium'>{detailsLog.perusahaan || '—'}</p>
                 </div>
                 <div>
-                  <Label className='text-xs text-muted-foreground'>Position</Label>
+                  <Label className='text-xs text-muted-foreground'>{String(t.dashboard.fieldPosition || 'Position')}</Label>
                   <p className='font-medium'>{detailsLog.posisi || '—'}</p>
                 </div>
                 <div>
-                  <Label className='text-xs text-muted-foreground'>Recipient</Label>
+                  <Label className='text-xs text-muted-foreground'>{String(t.dashboard.fieldRecipient || 'Recipient')}</Label>
                   <p className='font-medium'>{detailsLog.email || '—'}</p>
                 </div>
                 <div>
-                  <Label className='text-xs text-muted-foreground'>Subject</Label>
+                  <Label className='text-xs text-muted-foreground'>{String(t.dashboard.fieldSubject || 'Subject')}</Label>
                   <p className='font-medium'>{detailsLog.subjek || '—'}</p>
                 </div>
                 {detailsLog.error ? (
                   <div>
-                    <Label className='text-xs text-muted-foreground'>Error</Label>
+                    <Label className='text-xs text-muted-foreground'>{String(t.dashboard.fieldError || 'Error')}</Label>
                     <p className='text-destructive'>{detailsLog.error}</p>
                   </div>
                 ) : null}
@@ -569,16 +577,16 @@ export default function HistoryPage() {
                   size='sm'
                   onClick={() => {
                     void navigator.clipboard.writeText(detailsLog.email)
-                    toast.success('Recipient email copied')
+                    toast.success(String(t.dashboard.copyEmail || 'Recipient email copied'))
                   }}
                 >
-                  <Copy className='size-3.5' /> Copy email
+                  <Copy className='size-3.5' /> {String(t.dashboard.copyEmail || 'Copy email')}
                 </Button>
                 <Button variant='outline' size='sm' asChild>
                   <a
                     href={`mailto:${detailsLog.email}?subject=${encodeURIComponent(detailsLog.subjek)}`}
                   >
-                    <ExternalLink className='size-3.5' /> Open mail app
+                    <ExternalLink className='size-3.5' /> {String(t.dashboard.openMailApp || 'Open mail app')}
                   </a>
                 </Button>
               </div>

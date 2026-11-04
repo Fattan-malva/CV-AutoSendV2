@@ -35,7 +35,7 @@ export default function ConfirmLogoutModal({ open, onClose }: ConfirmLogoutModal
         if (!value) onClose()
       }}
       title={t.logout.prompt}
-      desc='You will be signed out of your Ceefy workspace on this device. You can sign back in at any time.'
+      desc={t.logout.desc}
       cancelBtnText={t.logout.cancel}
       confirmText={t.logout.confirm}
       loading={loading}

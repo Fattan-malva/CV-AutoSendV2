@@ -8,7 +8,7 @@ const API_URL = `${process.env.OLLAMA_CLOUD_BASE_URL || 'https://ollama.com/v1'}
 const SYSTEM_PROMPT_ID = (nama: string) => `Kamu adalah asisten yang membantu melamar kerja dengan nama pengirim: "${nama}".
 Analisis brosur lowongan kerja dan keluarkan JSON dengan field:
 - subjek: ikuti format subjek yang diminta brosur jika ada (contoh: "IT_Fatan"), jika brosur tidak menentukan format maka buat sendiri (contoh: "Lamaran Posisi {posisi} di {nama_perusahaan}")
-- nama_perusahaan: nama perusahaan
+- nama_perusahaan: nama perusahaan dari brosur. Jika tidak ada atau tidak jelas, gunakan fallback "Unknown Company".
 - posisi: posisi yang dilamar
 - email: email tujuan untuk kirim lamaran (string kosong jika tidak ada)
 - intro: 1 paragraf intro perkenalan. Awali dengan "Perkenalkan nama saya ${nama}," lalu jelaskan ketertarikan.
@@ -18,7 +18,7 @@ Analisis brosur lowongan kerja dan keluarkan JSON dengan field:
 const SYSTEM_PROMPT_EN = (nama: string) => `You are an assistant helping apply for jobs. Sender name: "${nama}".
 Analyze the job vacancy brochure and output JSON with fields:
 - subjek: follow the subject format requested by the brochure if any (e.g. "IT_Fatan"), if none specified create your own (e.g. "Application for {posisi} at {nama_perusahaan}")
-- nama_perusahaan: company name
+- nama_perusahaan: company name. If unavailable, use "Unknown Company".
 - posisi: position being applied for
 - email: target email to send application to (empty string if not available)
 - intro: 1 paragraph introduction. Start with "My name is ${nama}," then explain interest.
@@ -59,7 +59,16 @@ async function parseGemmaJson(text: string): Promise<AnalysisResult> {
   if (braceMatch) jsonText = braceMatch[0]
 
   try {
-    return JSON.parse(jsonText) as AnalysisResult
+    const parsed = JSON.parse(jsonText) as Partial<AnalysisResult>
+    return {
+      subjek: String(parsed.subjek ?? ''),
+      nama_perusahaan: String(parsed.nama_perusahaan ?? 'Unknown Company').trim(),
+      posisi: String(parsed.posisi ?? ''),
+      intro: String(parsed.intro ?? ''),
+      alasan: String(parsed.alasan ?? ''),
+      penutup: String(parsed.penutup ?? ''),
+      email: String(parsed.email ?? ''),
+    }
   } catch {
     throw new Error(`AI returned invalid JSON. Response: ${text.slice(0, 500)}`)
   }

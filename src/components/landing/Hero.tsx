@@ -154,25 +154,25 @@ export default function Hero({ onOpenAuth }: HeroProps) {
             <div className="absolute -inset-1 bg-gradient-to-tr from-brand/0 via-brand/20 to-brand/0 rounded-[3rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
 
             {/* Outer Shell (Double-Bezel Architecture) */}
-            <div className="relative p-2 rounded-[2.5rem] bg-gradient-to-b from-white/10 to-white/5 ring-1 ring-white/10 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] backdrop-blur-3xl">
+            <div className="relative p-2 rounded-[2.5rem] bg-gradient-to-b from-foreground/10 to-foreground/5 ring-1 ring-border shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] backdrop-blur-3xl">
 
               {/* Inner Core */}
-              <div className="relative w-full h-[500px] rounded-[calc(2.5rem-0.5rem)] bg-[#0A0A0B] shadow-[inset_0_1px_2px_rgba(255,255,255,0.1)] overflow-hidden flex flex-col p-6">
+              <div className="relative w-full h-[500px] rounded-[calc(2.5rem-0.5rem)] bg-card shadow-[inset_0_1px_2px_rgba(255,255,255,0.06)] overflow-hidden flex flex-col p-6">
 
                 {/* Futuristic Grid Background */}
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
 
                 {/* Mock UI Header (Traffic Lights) */}
-                <div className="flex items-center justify-between mb-8 border-b border-white/10 pb-4 relative z-10">
+                <div className="flex items-center justify-between mb-8 border-b border-border pb-4 relative z-10">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-red-500/30 border border-red-500/50 shadow-[0_0_10px_rgba(239,68,68,0.2)]" />
                     <div className="w-3 h-3 rounded-full bg-yellow-500/30 border border-yellow-500/50 shadow-[0_0_10px_rgba(234,179,8,0.2)]" />
                     <div className="w-3 h-3 rounded-full bg-green-500/30 border border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.2)]" />
                   </div>
                   <div className="flex gap-1.5 opacity-50">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-foreground" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-foreground" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-foreground" />
                   </div>
                 </div>
 
@@ -181,38 +181,38 @@ export default function Hero({ onOpenAuth }: HeroProps) {
 
                   {/* Header Profile Section */}
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-full border border-white/20 bg-gradient-to-tr from-white/5 to-white/10 animate-pulse" />
+                    <div className="w-14 h-14 rounded-full border border-border bg-gradient-to-tr from-foreground/5 to-foreground/10 animate-pulse" />
                     <div className="space-y-2 flex-1">
                       <div className="flex justify-between items-center">
-                        <div className="w-1/2 h-3 rounded-full bg-white/20" />
+                        <div className="w-1/2 h-3 rounded-full bg-foreground/20" />
                         <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20">
                           98% MATCH
                         </span>
                       </div>
-                      <div className="w-1/3 h-2 rounded-full bg-white/10" />
+                      <div className="w-1/3 h-2 rounded-full bg-foreground/10" />
                     </div>
                   </div>
 
                   {/* Work Experience Blocks */}
                   <div className="space-y-3">
-                    <div className="w-32 h-3 rounded-full bg-white/10 mb-4" />
-                    <div className="w-full h-2 rounded-full bg-white/5" />
-                    <div className="w-[85%] h-2 rounded-full bg-white/5" />
-                    <div className="w-[90%] h-2 rounded-full bg-white/5" />
+                    <div className="w-32 h-3 rounded-full bg-foreground/10 mb-4" />
+                    <div className="w-full h-2 rounded-full bg-foreground/5" />
+                    <div className="w-[85%] h-2 rounded-full bg-foreground/5" />
+                    <div className="w-[90%] h-2 rounded-full bg-foreground/5" />
                   </div>
 
                   {/* Skill Tags */}
                   <div className="flex gap-2 pt-2">
-                    <div className="w-16 h-5 rounded-md bg-white/5 border border-white/10" />
-                    <div className="w-20 h-5 rounded-md bg-white/5 border border-white/10" />
-                    <div className="w-14 h-5 rounded-md bg-white/5 border border-white/10" />
+                    <div className="w-16 h-5 rounded-md bg-foreground/5 border border-border" />
+                    <div className="w-20 h-5 rounded-md bg-foreground/5 border border-border" />
+                    <div className="w-14 h-5 rounded-md bg-foreground/5 border border-border" />
                   </div>
 
                   {/* Education Block */}
                   <div className="space-y-3 pt-2">
-                    <div className="w-24 h-3 rounded-full bg-white/10 mb-4" />
-                    <div className="w-[95%] h-2 rounded-full bg-white/5" />
-                    <div className="w-2/3 h-2 rounded-full bg-white/5" />
+                    <div className="w-24 h-3 rounded-full bg-foreground/10 mb-4" />
+                    <div className="w-[95%] h-2 rounded-full bg-foreground/5" />
+                    <div className="w-2/3 h-2 rounded-full bg-foreground/5" />
                   </div>
                 </div>
 
@@ -224,14 +224,14 @@ export default function Hero({ onOpenAuth }: HeroProps) {
 
                 {/* Floating Status Badge (Glassmorphism) */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
-                  <div className="bg-black/40 backdrop-blur-md border border-white/10 px-5 py-3 rounded-2xl shadow-2xl transform transition-transform duration-700 group-hover:scale-105">
+                  <div className="bg-background/40 backdrop-blur-md border border-border px-5 py-3 rounded-2xl shadow-2xl transform transition-transform duration-700 group-hover:scale-105">
                     <div className="flex items-center gap-4">
                       <div className="relative flex h-3 w-3">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-3 w-3 bg-brand shadow-[0_0_10px_currentColor]"></span>
                       </div>
                       <div>
-                        <div className="text-white text-xs font-bold tracking-widest uppercase mb-1">
+                        <div className="text-foreground text-xs font-bold tracking-widest uppercase mb-1">
                           CV Builder Active
                         </div>
                         <div className="text-brand text-[10px] font-mono tracking-wider opacity-80">

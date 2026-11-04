@@ -111,11 +111,11 @@ export default function Features() {
                   <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
 
                   {i === 0 && (
-                    <div className="mt-8 -mb-2 -mr-2 flex-1 min-h-[200px] rounded-2xl ring-1 ring-white/5 overflow-hidden relative bg-gradient-to-br from-brand/10 via-transparent to-transparent flex flex-col">
-                      <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5">
-                        <div className="w-2 h-2 rounded-full bg-white/20" />
-                        <div className="w-2 h-2 rounded-full bg-white/20" />
-                        <div className="w-2 h-2 rounded-full bg-white/20" />
+                    <div className="mt-8 -mb-2 -mr-2 flex-1 min-h-[200px] rounded-2xl ring-1 ring-border overflow-hidden relative bg-gradient-to-br from-brand/10 via-transparent to-transparent flex flex-col">
+                      <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
+                        <div className="w-2 h-2 rounded-full bg-foreground/20" />
+                        <div className="w-2 h-2 rounded-full bg-foreground/20" />
+                        <div className="w-2 h-2 rounded-full bg-foreground/20" />
                       </div>
                       <div className="flex-1 flex items-center px-5">
                         <span className="text-brand mr-2 font-mono text-sm">$</span>
