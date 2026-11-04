@@ -1,37 +1,50 @@
 'use client'
 
-import { FileText, Lightning, Brain, ShieldCheck, PaperPlaneTilt, Image, Sparkle, CheckCircle, Gear } from 'phosphor-react'
+import {
+  Brain,
+  CircleCheck,
+  FileText,
+  Image as ImageIcon,
+  Send,
+  Settings,
+  ShieldCheck,
+  Sparkles,
+  Zap,
+} from 'lucide-react'
 import { useI18n } from '@/lib/i18n-context'
 
-const iconMap = [FileText, Lightning, Brain, ShieldCheck, PaperPlaneTilt, Image, Sparkle, CheckCircle, Gear]
+const iconMap = [FileText, Zap, Brain, ShieldCheck, Send, ImageIcon, Sparkles, CircleCheck, Settings]
 
+/**
+ * Infinite logo-style strip. Needs the `animate-marquee` utility from the
+ * landing theme snippet (see landing-theme-additions.css).
+ */
 export default function Marquee() {
   const { t } = useI18n()
-  const row = [...t.landing.marqueeItems, ...t.landing.marqueeItems]
+  const items = t.landing.marqueeItems
 
   return (
-    <section className="relative py-16 md:py-24 overflow-hidden">
-      {/* Ethereal Glass background mesh */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[30vw] rounded-full bg-brand/4 blur-[120px] mix-blend-screen" />
-      </div>
-      <div className="relative flex overflow-hidden select-none gap-16">
+    <section className="overflow-hidden border-b bg-muted/30 py-5">
+      <div className="flex w-max animate-marquee hover:[animation-play-state:paused] motion-reduce:animate-none">
         {[0, 1].map((group) => (
-          <div
+          <ul
             key={group}
             aria-hidden={group === 1}
-            className="animate-marquee flex shrink-0 items-center gap-16 whitespace-nowrap"
+            className="flex shrink-0 items-center gap-12 pe-12"
           >
-            {row.map((label, i) => {
+            {items.map((label, i) => {
               const Icon = iconMap[i % iconMap.length]
               return (
-                <div key={i} className="flex items-center gap-3">
-                  <Icon size={22} className="text-brand/60" weight="duotone" />
-                  <span className="text-lg font-serif text-foreground/80">{label}</span>
-                </div>
+                <li
+                  key={`${group}-${i}`}
+                  className="flex items-center gap-2.5 whitespace-nowrap text-sm font-medium text-muted-foreground"
+                >
+                  <Icon className="size-4" />
+                  {label}
+                </li>
               )
             })}
-          </div>
+          </ul>
         ))}
       </div>
     </section>

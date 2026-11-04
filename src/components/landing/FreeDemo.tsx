@@ -1,34 +1,52 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Upload, ArrowRight, Warning } from 'phosphor-react'
+import { useEffect, useState, type DragEvent } from 'react'
+import { ArrowRight, LoaderCircle, TriangleAlert, Upload } from 'lucide-react'
 import { useI18n } from '@/lib/i18n-context'
-import { useScrollReveal } from '@/lib/use-scroll-reveal'
-import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
+import Reveal from './Reveal'
 import type { AnalysisResult } from '@/types'
 
 interface FreeDemoProps {
   onOpenAuth: () => void
 }
 
+const DEMO_KEY = 'ceefy-demo-used'
+const ACCEPTED = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp']
+
 export default function FreeDemo({ onOpenAuth }: FreeDemoProps) {
   const { t } = useI18n()
-  const { ref, isVisible } = useScrollReveal({ threshold: 0.05 })
   const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<AnalysisResult | null>(null)
   const [error, setError] = useState('')
   const [used, setUsed] = useState(false)
+  const [dragging, setDragging] = useState(false)
 
   useEffect(() => {
-    const saved = localStorage.getItem('ceefy-demo-used')
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- reading persisted demo flag on mount
-    if (saved === 'true') setUsed(true)
+    try {
+      if (localStorage.getItem(DEMO_KEY) === 'true') {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- reading persisted demo flag on mount
+        setUsed(true)
+      }
+    } catch {
+      // Storage can be blocked (private mode); the demo then simply isn't limited.
+    }
   }, [])
 
   useEffect(() => {
-    if (used) localStorage.setItem('ceefy-demo-used', 'true')
+    if (!used) return
+    try {
+      localStorage.setItem(DEMO_KEY, 'true')
+    } catch {
+      // ignore
+    }
   }, [used])
 
   const handleFile = (f: File) => {
@@ -44,6 +62,21 @@ export default function FreeDemo({ onOpenAuth }: FreeDemoProps) {
     }
   }
 
+  const pickFile = (f: File | undefined) => {
+    if (!f) return
+    if (!ACCEPTED.includes(f.type)) {
+      setError('Format tidak didukung. Gunakan PDF, JPG, PNG, atau WEBP.')
+      return
+    }
+    handleFile(f)
+  }
+
+  const handleDrop = (e: DragEvent<HTMLLabelElement>) => {
+    e.preventDefault()
+    setDragging(false)
+    pickFile(e.dataTransfer.files?.[0])
+  }
+
   const handleAnalyze = async () => {
     if (!file) return
     setLoading(true)
@@ -53,8 +86,8 @@ export default function FreeDemo({ onOpenAuth }: FreeDemoProps) {
         new Promise((resolve, reject) => {
           const reader = new FileReader()
           reader.onload = () => {
-            const result = reader.result as string
-            resolve(result.split(',')[1])
+            const dataUrl = reader.result as string
+            resolve(dataUrl.split(',')[1])
           }
           reader.onerror = reject
           reader.readAsDataURL(f)
@@ -77,126 +110,122 @@ export default function FreeDemo({ onOpenAuth }: FreeDemoProps) {
     }
   }
 
+  const resultFields = result
+    ? [
+        { label: 'Subjek', value: result.subjek, wide: false },
+        { label: 'Email', value: result.email, wide: false },
+        { label: 'Perusahaan', value: result.nama_perusahaan, wide: false },
+        { label: 'Posisi', value: result.posisi, wide: false },
+        { label: 'Intro', value: result.intro, wide: true },
+        { label: 'Alasan', value: result.alasan, wide: true },
+        { label: 'Penutup', value: result.penutup, wide: true },
+      ]
+    : []
+
   return (
-    <section id="demo" className="relative py-32 md:py-48 px-4 sm:px-8 overflow-hidden">
-      {/* Ethereal Glass background mesh */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[20%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-brand/6 blur-[160px] mix-blend-screen" />
-        <div className="absolute bottom-[10%] right-[-10%] w-[35vw] h-[35vw] rounded-full bg-brand/5 blur-[140px] mix-blend-screen" />
-      </div>
-      <div ref={ref} className={`max-w-2xl mx-auto relative z-10 transition-all duration-900 ease-[cubic-bezier(0.32,0.72,0,1)] ${
-        isVisible ? 'opacity-100 translate-y-0 blur-0' : 'opacity-0 translate-y-16 blur-md'
-      }`}>
-        <div className="mb-10">
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-serif text-foreground leading-[1.02] tracking-tight text-start">
-            {t.demo.title}
-          </h2>
-          <p className="mt-5 text-base text-muted-foreground leading-relaxed max-w-lg">
-            {t.demo.upload}
-          </p>
-        </div>
+    <section id="demo" className="border-b py-24 md:py-32">
+      <div className="mx-auto max-w-2xl px-4 sm:px-8">
+        <Reveal>
+          <Badge variant="outline" className="rounded-full px-3 py-1 text-xs font-medium uppercase tracking-wide">
+            {t.demo.label}
+          </Badge>
+          <h2 className="mt-6 text-3xl font-bold tracking-tight sm:text-4xl">{t.demo.title}</h2>
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground">{t.demo.upload}</p>
+        </Reveal>
 
-        {used && !result ? (
-          <div className="p-[1px] rounded-[2rem] bg-gradient-to-b from-border to-transparent">
-            <div className="rounded-[calc(2rem-1px)] bg-card p-10 text-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
-              <Warning size={28} className="text-brand mx-auto mb-4" />
-              <p className="text-sm text-foreground">{t.demo.used}</p>
-              <p className="mt-2 text-xs text-muted-foreground break-words whitespace-normal max-w-full">
-                {t.demo.usedDesc}
-              </p>
-              <button
-                onClick={onOpenAuth}
-                className="group inline-flex items-center justify-center gap-2 mt-6 px-5 py-2.5 rounded-full bg-foreground text-background text-sm font-medium hover:opacity-90 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
-              >
-                <span>{t.demo.sendEmail}</span>
-                <span className="w-6 h-6 rounded-full bg-background/10 flex items-center justify-center group-hover:translate-x-1 group-hover:-translate-y-[1px] group-hover:scale-105 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]">
-                  <ArrowRight size={12} weight="bold" className="text-background" />
-                </span>
-              </button>
-            </div>
-          </div>
-        ) : (
-          <>
-            {!result && (
-              <div className="p-[1px] rounded-[2rem] bg-gradient-to-b from-border to-transparent">
-                <div className="rounded-[calc(2rem-1px)] bg-card p-10 text-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
-                  <label className="flex flex-col items-center gap-3 cursor-pointer">
-                    <div className="w-12 h-12 rounded-full bg-brand/10 flex items-center justify-center">
-                      <Upload size={22} className="text-brand" />
+        <Reveal delay={120} className="mt-10">
+          {used && !result ? (
+            <Alert>
+              <TriangleAlert />
+              <AlertTitle>{t.demo.used}</AlertTitle>
+              <AlertDescription>
+                <p>{t.demo.usedDesc}</p>
+                <Button className="group mt-4" onClick={onOpenAuth}>
+                  {t.demo.sendEmail}
+                  <ArrowRight className="transition-transform duration-300 group-hover:translate-x-0.5" />
+                </Button>
+              </AlertDescription>
+            </Alert>
+          ) : result ? (
+            <Card className="gap-0 py-0">
+              <CardContent className="p-6 sm:p-8">
+                <dl className="grid gap-5 sm:grid-cols-2">
+                  {resultFields.map((f) => (
+                    <div key={f.label} className={f.wide ? 'sm:col-span-2' : undefined}>
+                      <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                        {f.label}
+                      </dt>
+                      <dd className="mt-1 text-sm leading-relaxed">{f.value}</dd>
                     </div>
-                    <span className="text-sm text-muted-foreground">{file ? file.name : 'Upload brosur (PDF/JPG/PNG)'}</span>
-                    <input
-                      type="file"
-                      accept=".pdf,image/*"
-                      className="hidden"
-                      onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
-                    />
-                  </label>
-
-                  {preview && (
-                    <img src={preview} alt="preview" className="mt-6 rounded-xl max-h-40 w-auto mx-auto object-cover" />
+                  ))}
+                </dl>
+                <Separator className="my-6" />
+                <Button className="group w-full" onClick={onOpenAuth}>
+                  {t.demo.sendEmail}
+                  <ArrowRight className="transition-transform duration-300 group-hover:translate-x-0.5" />
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="gap-0 py-0">
+              <CardContent className="space-y-6 p-6 sm:p-8">
+                <label
+                  onDragOver={(e) => {
+                    e.preventDefault()
+                    setDragging(true)
+                  }}
+                  onDragLeave={() => setDragging(false)}
+                  onDrop={handleDrop}
+                  className={cn(
+                    'flex cursor-pointer flex-col items-center gap-3 rounded-lg border border-dashed p-8 text-center transition-colors duration-300 hover:bg-muted/50',
+                    dragging && 'border-primary bg-primary/5'
                   )}
-
-                  <div className="mt-6 flex justify-center">
-                    <button
-                      onClick={handleAnalyze}
-                      disabled={!file || loading}
-                      className="group inline-flex items-center justify-center gap-2 bg-foreground text-background rounded-full px-6 py-3 font-medium text-sm hover:opacity-90 disabled:opacity-40 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98] min-w-[180px]"
-                    >
-                      {loading ? (
-                        <>
-                          <Skeleton className="w-4 h-4 rounded-full" />
-                          {t.demo.loading}
-                        </>
-                      ) : t.demo.analyze}
-                      {!loading && (
-                        <span className="w-6 h-6 rounded-full bg-background/10 flex items-center justify-center group-hover:translate-x-1 group-hover:-translate-y-[1px] group-hover:scale-105 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]">
-                          <ArrowRight size={12} weight="bold" className="text-background" />
-                        </span>
-                      )}
-                    </button>
+                >
+                  <div
+                    className={cn(
+                      'flex size-12 items-center justify-center rounded-full bg-muted transition-transform duration-300',
+                      dragging && 'scale-110'
+                    )}
+                  >
+                    <Upload className="size-5" />
                   </div>
+                  <span className="text-sm text-muted-foreground">
+                    {file ? file.name : dragging ? 'Lepaskan brosur di sini' : 'Upload brosur (PDF/JPG/PNG)'}
+                  </span>
+                  <input
+                    type="file"
+                    accept=".pdf,image/*"
+                    className="sr-only"
+                    onChange={(e) => pickFile(e.target.files?.[0])}
+                  />
+                </label>
 
-                  {error && <p className="mt-4 text-xs text-red-400/80">{error}</p>}
-                </div>
-              </div>
-            )}
+                {preview && (
+                  <img
+                    src={preview}
+                    alt="Preview brosur"
+                    className="mx-auto max-h-40 rounded-md border object-contain"
+                  />
+                )}
 
-            {result && (
-              <div className="mt-4">
-                <div className="p-[1px] rounded-[2rem] bg-gradient-to-b from-border to-transparent">
-                  <div className="rounded-[calc(2rem-1px)] bg-card p-7 space-y-4 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
-                    {[
-                      { label: 'Subjek', value: result.subjek },
-                      { label: 'Email', value: result.email },
-                      { label: 'Perusahaan', value: result.nama_perusahaan },
-                      { label: 'Posisi', value: result.posisi },
-                      { label: 'Intro', value: result.intro },
-                      { label: 'Alasan', value: result.alasan },
-                      { label: 'Penutup', value: result.penutup },
-                    ].map((f) => (
-                      <div key={f.label}>
-                        <label className="text-[10px] uppercase tracking-wider text-muted-foreground">{f.label}</label>
-                        <p className="text-xs text-foreground/80 mt-0.5">{f.value}</p>
-                      </div>
-                    ))}
-                    <div className="pt-4 border-t border-border">
-                      <button
-                        onClick={onOpenAuth}
-                        className="group w-full flex items-center justify-center gap-2 bg-foreground text-background rounded-full px-5 py-3 font-medium text-sm hover:opacity-90 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
-                      >
-                        <span>{t.demo.sendEmail}</span>
-                        <span className="w-6 h-6 rounded-full bg-background/10 flex items-center justify-center group-hover:translate-x-1 group-hover:-translate-y-[1px] group-hover:scale-105 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]">
-                          <ArrowRight size={12} weight="bold" className="text-background" />
-                        </span>
-                      </button>
-                    </div>
-                  </div>
+                {error && <p className="text-center text-sm text-destructive">{error}</p>}
+
+                <div className="flex justify-center">
+                  <Button size="lg" className="min-w-44" disabled={!file || loading} onClick={handleAnalyze}>
+                    {loading ? (
+                      <>
+                        <LoaderCircle className="animate-spin" />
+                        {t.demo.loading}
+                      </>
+                    ) : (
+                      t.demo.analyze
+                    )}
+                  </Button>
                 </div>
-              </div>
-            )}
-          </>
-        )}
+              </CardContent>
+            </Card>
+          )}
+        </Reveal>
       </div>
     </section>
   )

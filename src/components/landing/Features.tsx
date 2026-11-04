@@ -1,15 +1,12 @@
 'use client'
 
-import { useRef, useState, useEffect, useMemo } from 'react'
-import { useGSAP } from '@gsap/react'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { FileText, Upload, Brain, PaperPlaneTilt, Sparkle, Download } from 'phosphor-react'
+import { useEffect, useMemo, useState } from 'react'
+import { Brain, Download, FileText, Send, Sparkles, Upload } from 'lucide-react'
 import { useI18n } from '@/lib/i18n-context'
+import Reveal from './Reveal'
+import SpotlightCard from './SpotlightCard'
 
-gsap.registerPlugin(ScrollTrigger, useGSAP)
-
-const iconMap = [FileText, Upload, Brain, PaperPlaneTilt, Sparkle, Download]
+const iconMap = [FileText, Upload, Brain, Send, Sparkles, Download]
 
 function useTypewriter(phrases: string[], typeSpeed = 45, deleteSpeed = 22, pause = 1500) {
   const [charIndex, setCharIndex] = useState(0)
@@ -18,6 +15,7 @@ function useTypewriter(phrases: string[], typeSpeed = 45, deleteSpeed = 22, paus
 
   useEffect(() => {
     const current = phrases[phraseIndex]
+    if (!current) return
     let timeout: ReturnType<typeof setTimeout>
     if (!deleting && charIndex < current.length) {
       timeout = setTimeout(() => setCharIndex((c) => c + 1), typeSpeed)
@@ -33,102 +31,60 @@ function useTypewriter(phrases: string[], typeSpeed = 45, deleteSpeed = 22, paus
     return () => clearTimeout(timeout)
   }, [charIndex, deleting, phraseIndex, phrases, typeSpeed, deleteSpeed, pause])
 
-  return phrases[phraseIndex].substring(0, charIndex)
+  return phrases[phraseIndex]?.substring(0, charIndex) ?? ''
 }
 
 export default function Features() {
   const { t } = useI18n()
-  const root = useRef<HTMLElement>(null)
   const steps = useMemo(() => t.landing.features.map((f) => f.title), [t])
   const typed = useTypewriter(steps)
 
-  useGSAP(
-    () => {
-      const cards = gsap.utils.toArray<HTMLElement>('.feat-card')
-      cards.forEach((card, i) => {
-        gsap.fromTo(
-          card,
-          { y: 60, opacity: 0, rotateX: 8 },
-          {
-            y: 0,
-            opacity: 1,
-            rotateX: 0,
-            duration: 1,
-            ease: 'expo.out',
-            delay: i * 0.15,
-            scrollTrigger: { trigger: card, start: 'top 85%' },
-          }
-        )
-      })
-    },
-    { scope: root }
-  )
-
   return (
-    <section ref={root} id="features" className="relative py-32 md:py-48 px-4 sm:px-8 overflow-hidden">
-      {/* Ethereal Glass background mesh */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-15%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-brand/8 blur-[160px] mix-blend-screen" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-brand/5 blur-[140px] mix-blend-screen" />
-        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.02]" />
-      </div>
-
-      <div className="max-w-[1440px] mx-auto relative z-10">
-        <div className="mb-20 max-w-2xl">
-          <div className="flex items-center gap-2 px-3 py-1.5 mb-8 rounded-full bg-surface border border-border backdrop-blur-md w-fit">
-            <Sparkle size={12} weight="fill" className="text-brand" />
-            <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium mt-[1px]">
-              {t.landing.featuresTitle}
-            </span>
-          </div>
-          <h2 className="text-4xl sm:text-5xl md:text-7xl font-serif text-foreground leading-[0.95] tracking-tight">
-            {t.landing.featuresTitle}
-          </h2>
-          <p className="mt-6 text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed font-light">
+    <section id="features" className="border-b py-24 md:py-32">
+      <div className="mx-auto max-w-6xl px-4 sm:px-8">
+        <Reveal className="max-w-2xl">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">{t.landing.featuresTitle}</h2>
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
             {t.landing.featuresDesc}
           </p>
-        </div>
+        </Reveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 auto-rows-[minmax(0,1fr)] gap-4 md:gap-6 grid-flow-dense">
+        <div className="mt-14 grid gap-4 md:grid-cols-6">
           {t.landing.features.map((f, i) => {
             const Icon = iconMap[i % iconMap.length]
-            let spans = 'md:col-span-4 md:row-span-1'
-            if (i === 0) spans = 'md:col-span-7 md:row-span-2'
-            else if (i === 1) spans = 'md:col-span-5 md:row-span-1'
-            else if (i === 2) spans = 'md:col-span-5 md:row-span-1'
+            const isLead = i === 0
 
             return (
-              <div key={i} className={`feat-card p-[1px] rounded-[2rem] bg-gradient-to-b from-border to-transparent ${spans}`}>
-                <div
-                  className={`rounded-[calc(2rem-1px)] bg-card h-full flex flex-col group overflow-hidden relative shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] ${
-                    i === 0 ? 'p-10' : 'p-7'
-                  }`}
-                >
-                  <div className="w-12 h-12 rounded-2xl bg-brand/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]">
-                    <Icon size={24} className="text-brand" weight="duotone" />
-                  </div>
-                  <h3 className="text-xl font-serif text-foreground mb-3">{f.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
-
-                  {i === 0 && (
-                    <div className="mt-8 -mb-2 -mr-2 flex-1 min-h-[200px] rounded-2xl ring-1 ring-border overflow-hidden relative bg-gradient-to-br from-brand/10 via-transparent to-transparent flex flex-col">
-                      <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-                        <div className="w-2 h-2 rounded-full bg-foreground/20" />
-                        <div className="w-2 h-2 rounded-full bg-foreground/20" />
-                        <div className="w-2 h-2 rounded-full bg-foreground/20" />
-                      </div>
-                      <div className="flex-1 flex items-center px-5">
-                        <span className="text-brand mr-2 font-mono text-sm">$</span>
-                        <span className="font-mono text-sm text-foreground/90">
-                          {typed}
-                          <span className="inline-block w-[2px] h-4 bg-brand ml-0.5 animate-blink align-middle" />
-                        </span>
-                      </div>
-                      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-transparent via-brand/10 to-brand/25 blur-xl animate-[scan_3s_ease-in-out_infinite_alternate] pointer-events-none" />
+              <Reveal
+                key={i}
+                delay={i * 90}
+                className={`h-full ${isLead ? 'md:col-span-4 md:row-span-2' : 'md:col-span-2'}`}
+              >
+                <SpotlightCard className="h-full gap-0 py-0">
+                  <div className="flex flex-1 flex-col p-6 sm:p-8">
+                    <div className="mb-5 flex size-10 items-center justify-center rounded-md border bg-muted transition-transform duration-500 group-hover:scale-105">
+                      <Icon className="size-5" />
                     </div>
-                  )}
-                </div>
-              </div>
+                    <h3 className="text-lg font-semibold">{f.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{f.desc}</p>
+
+                    {isLead && (
+                      <div className="mt-8 flex-1 overflow-hidden rounded-lg border bg-muted/40 font-mono text-sm">
+                        <div className="flex items-center gap-1.5 border-b px-4 py-2.5">
+                          <span className="size-2 rounded-full bg-muted-foreground/30" />
+                          <span className="size-2 rounded-full bg-muted-foreground/30" />
+                          <span className="size-2 rounded-full bg-muted-foreground/30" />
+                        </div>
+                        <div className="flex min-h-24 items-center gap-2 px-4 py-5">
+                          <span className="text-muted-foreground">$</span>
+                          <span className="text-foreground/90">{typed}</span>
+                          <span className="inline-block h-4 w-[2px] animate-pulse bg-foreground" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </SpotlightCard>
+              </Reveal>
             )
           })}
         </div>

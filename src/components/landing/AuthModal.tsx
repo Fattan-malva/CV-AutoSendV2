@@ -3,10 +3,20 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+import { LoaderCircle } from 'lucide-react'
 import { auth } from '@/lib/firebase'
 import { useAuth } from '@/lib/auth-context'
 import { useI18n } from '@/lib/i18n-context'
-import { ArrowRight, Spinner } from 'phosphor-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import GoogleIcon from './GoogleIcon'
 
 interface AuthModalProps {
   open: boolean
@@ -20,8 +30,6 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
   const [loading, setLoading] = useState(false)
   const [transitioning, setTransitioning] = useState(false)
   const [error, setError] = useState('')
-
-  if (!open) return null
 
   const handleGoogleLogin = async () => {
     if (!auth) {
@@ -37,7 +45,8 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
 
       const token = await u.getIdToken()
       await fetch('/api/user-config', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           uid: u.uid,
           email: u.email || '',
@@ -71,63 +80,39 @@ export default function AuthModal({ open, onClose }: AuthModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-2xl" style={{ backgroundColor: 'var(--overlay)' }} onClick={onClose}>
-      <div
-        className="w-full max-w-sm mx-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-1.5 rounded-[2.5rem] bg-border/40">
-          <div className="rounded-[calc(2.5rem-0.375rem)] bg-card p-8 text-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)]">
-            {transitioning ? (
-              <div className="py-8">
-                <div className="flex items-center justify-center gap-3 mb-6 animate-stagger" style={{ animation: 'stagger-fade 0.5s ease forwards' }}>
-                  <span className="text-sm text-muted-foreground">Authenticated</span>
-                  <Spinner size={18} className="text-brand animate-spin" />
-                </div>
-                <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse" />
-                  <span>Redirecting to dashboard...</span>
-                </div>
-              </div>
-            ) : (
-              <>
-                <h2 className="text-2xl font-serif text-foreground mb-2">{t.login.title}</h2>
-                <p className="text-xs text-muted-foreground mb-8">Masuk dengan akun Google Anda</p>
+    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader className="text-center sm:text-center">
+          <DialogTitle className="text-xl">{t.login.title}</DialogTitle>
+          <DialogDescription>Masuk dengan akun Google Anda</DialogDescription>
+        </DialogHeader>
 
-                {user ? (
-                  <div className="mt-4 p-4 bg-subtle rounded-2xl border border-border">
-                    <p className="text-sm font-medium text-foreground">{user.displayName || user.email}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
-                  </div>
-                ) : (
-                  <button
-                    onClick={handleGoogleLogin}
-                    disabled={loading}
-                    className="group w-full flex items-center justify-center gap-3 bg-brand text-background rounded-full px-5 py-3.5 font-medium text-sm hover:opacity-90 disabled:opacity-40 transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
-                  >
-                    <svg className="w-5 h-5" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" />
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-                    </svg>
-                    {loading ? 'Loading...' : t.login.google}
-                    {!loading && (
-                      <span className="w-6 h-6 rounded-full bg-background/10 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-300">
-                        <ArrowRight size={12} weight="bold" className="text-background" />
-                      </span>
-                    )}
-                  </button>
-                )}
-
-                {error && (
-                  <p className="mt-4 text-xs text-red-400">{error}</p>
-                )}
-              </>
-            )}
+        {transitioning ? (
+          <div className="flex flex-col items-center gap-3 py-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 font-medium text-foreground">
+              <LoaderCircle className="size-4 animate-spin" />
+              Authenticated
+            </div>
+            <p>Redirecting to dashboard...</p>
           </div>
-        </div>
-      </div>
-    </div>
+        ) : user ? (
+          <Card className="gap-0 bg-muted/40 py-0 shadow-none">
+            <CardContent className="p-4">
+              <p className="text-sm font-medium">{user.displayName || user.email}</p>
+              <p className="text-xs text-muted-foreground">{user.email}</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            <Button size="lg" variant="outline" className="w-full" disabled={loading} onClick={handleGoogleLogin}>
+              {loading ? <LoaderCircle className="animate-spin" /> : <GoogleIcon />}
+              {loading ? 'Loading...' : t.login.google}
+            </Button>
+          </div>
+        )}
+
+        {error && <p role="alert" className="text-center text-sm text-destructive">{error}</p>}
+      </DialogContent>
+    </Dialog>
   )
 }

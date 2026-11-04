@@ -1,127 +1,91 @@
 'use client'
 
-import { useRef } from 'react'
-import { useGSAP } from '@gsap/react'
-import gsap from 'gsap'
-import { ChatCircleText, ShieldCheck, Lightning, Target, FileText } from 'phosphor-react'
+import { useEffect, useState } from 'react'
+import { FileText, MessageSquareText, ShieldCheck, Target, Zap } from 'lucide-react'
 import { useI18n } from '@/lib/i18n-context'
+import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
+import Reveal from './Reveal'
 
-const iconMap = [FileText, Target, Lightning, ShieldCheck]
+const iconMap = [FileText, Target, Zap, ShieldCheck]
+const ROTATE_MS = 3500
 
 export default function DesireSection() {
   const { t } = useI18n()
-  const root = useRef<HTMLElement>(null)
-  const trackRef = useRef<HTMLDivElement>(null)
-  const viewportRef = useRef<HTMLDivElement>(null)
+  const cards = t.landing.desireCards
+  const [active, setActive] = useState(0)
+  const [paused, setPaused] = useState(false)
 
-  const allCards = [...t.landing.desireCards, ...t.landing.desireCards]
-
-  useGSAP(
-    () => {
-      const cards = gsap.utils.toArray<HTMLElement>('.desire-card')
-      const track = trackRef.current
-      const vp = viewportRef.current
-      if (!track || !vp || cards.length < 8) return
-
-      const gap = 24
-      const cardH = cards[0].offsetHeight
-      const step = cardH + gap
-      const total = 4 * step
-
-      vp.style.height = `${3 * step - gap}px`
-
-      gsap.set(cards, { scale: 0.92, opacity: 0.35, y: 12 })
-      gsap.set(cards[0], { scale: 1, opacity: 1, y: 0 })
-
-      let lastActive = -1
-
-      gsap.to(track, {
-        y: -total,
-        duration: 12,
-        ease: 'none',
-        repeat: -1,
-        modifiers: {
-          y: (y) => {
-            const raw = parseFloat(y)
-            return (raw % total) + 'px'
-          },
-        },
-        onUpdate: function () {
-          const rawY = gsap.getProperty(track, 'y') as number
-          const activeIndex = (Math.round(Math.abs(rawY) / step) + 1) % 4
-
-          if (activeIndex === lastActive) return
-          lastActive = activeIndex
-
-          cards.forEach((card, i) => {
-            const idx = i % 4
-            gsap.to(card, {
-              scale: idx === activeIndex ? 1 : 0.92,
-              opacity: idx === activeIndex ? 1 : 0.35,
-              y: idx === activeIndex ? 0 : 12,
-              duration: 0.3,
-              ease: 'power2.out',
-              overwrite: 'auto',
-            })
-          })
-        },
-      })
-    },
-    { scope: root }
-  )
+  // Highlight cycles through the cards. Hovering or focusing the stack pauses it, and clicking pins a card.
+  useEffect(() => {
+    if (paused || cards.length < 2) return
+    const id = window.setInterval(() => {
+      setActive((i) => (i + 1) % cards.length)
+    }, ROTATE_MS)
+    return () => window.clearInterval(id)
+  }, [paused, cards.length])
 
   return (
-    <section ref={root} id="why-different" className="relative py-32 md:py-48 px-4 sm:px-8 overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[10%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-brand/6 blur-[160px] mix-blend-screen" />
-        <div className="absolute bottom-0 right-[-5%] w-[35vw] h-[35vw] rounded-full bg-brand/5 blur-[140px] mix-blend-screen" />
-        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.02]" />
-      </div>
-      <div className="max-w-[1440px] mx-auto relative z-10">
-        <div className="flex flex-col md:flex-row gap-16 md:gap-24">
-          <div className="w-full md:w-1/2">
-            <div className="flex flex-col justify-center">
-              <div className="flex items-center gap-2 px-3 py-1.5 mb-8 rounded-full bg-surface border border-border backdrop-blur-md w-fit">
-                <ChatCircleText size={12} weight="fill" className="text-brand" />
-                <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium mt-[1px]">
-                  {t.landing.desireLabel}
-                </span>
-              </div>
-              <h2 className="text-4xl sm:text-5xl md:text-7xl font-serif text-foreground leading-[0.95] tracking-tight">
-                {t.landing.desireTitle}
-              </h2>
-              <p className="mt-6 text-lg md:text-xl text-muted-foreground leading-relaxed max-w-md font-light">
-                {t.landing.desireParagraph.split(' ').map((w, i) => (
-                  <span key={i} className="scrub-word">{w} </span>
-                ))}
-              </p>
-            </div>
-          </div>
+    <section id="why-different" className="border-b py-24 md:py-32">
+      <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 sm:px-8 md:grid-cols-2 md:gap-20">
+        <Reveal>
+          <Badge
+            variant="outline"
+            className="gap-1.5 rounded-full px-3 py-1 text-xs font-medium uppercase tracking-wide"
+          >
+            <MessageSquareText />
+            {t.landing.desireLabel}
+          </Badge>
+          <h2 className="mt-6 text-3xl font-bold tracking-tight sm:text-4xl">{t.landing.desireTitle}</h2>
+          <p className="mt-4 max-w-md text-base leading-relaxed text-muted-foreground sm:text-lg">
+            {t.landing.desireParagraph}
+          </p>
+        </Reveal>
 
-          <div className="w-full md:w-1/2">
-            <div ref={viewportRef} className="overflow-hidden relative">
-              <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
-              <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
-              <div ref={trackRef} className="flex flex-col gap-6">
-                {allCards.map((g, i) => {
-                  const Icon = iconMap[i % iconMap.length]
-                  return (
-                    <div key={i} className="desire-card p-[1px] rounded-[2rem] bg-gradient-to-b from-foreground/10 to-foreground/[0.02]">
-                      <div className="rounded-[calc(2rem-1px)] bg-card p-8 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] flex items-start gap-5">
-                        <div className="w-12 h-12 rounded-2xl bg-brand/10 flex items-center justify-center shrink-0">
-                          <Icon size={24} className="text-brand" weight="duotone" />
-                        </div>
-                        <div>
-                          <h3 className="text-lg font-serif text-foreground mb-2">{g.title}</h3>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{g.desc}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
+        <div
+          className="flex flex-col gap-3"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+        >
+          {cards.map((g, i) => {
+            const Icon = iconMap[i % iconMap.length]
+            const isActive = i === active
+
+            return (
+              <Reveal key={i} delay={i * 80}>
+                <Card
+                  role="button"
+                  tabIndex={0}
+                  aria-pressed={isActive}
+                  onMouseEnter={() => setActive(i)}
+                  onClick={() => setActive(i)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      setActive(i)
+                    }
+                  }}
+                  onFocus={() => setPaused(true)}
+                  onBlur={() => setPaused(false)}
+                  className={`cursor-pointer flex-row items-start gap-4 p-6 outline-none transition-all duration-500 focus-visible:ring-[3px] focus-visible:ring-ring/50 ${
+                    isActive ? 'border-primary/40 shadow-md' : 'opacity-60 hover:opacity-90'
+                  }`}
+                >
+                  <div
+                    className={`flex size-10 shrink-0 items-center justify-center rounded-md border transition-colors duration-500 ${
+                      isActive ? 'border-primary bg-primary text-primary-foreground' : 'bg-muted'
+                    }`}
+                  >
+                    <Icon className="size-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">{g.title}</h3>
+                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{g.desc}</p>
+                  </div>
+                </Card>
+              </Reveal>
+            )
+          })}
         </div>
       </div>
     </section>

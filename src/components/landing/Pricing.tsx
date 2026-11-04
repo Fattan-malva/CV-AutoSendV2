@@ -1,150 +1,85 @@
 'use client'
 
-import { useRef } from 'react'
-import { useGSAP } from '@gsap/react'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { ArrowRight, Check, Sparkle } from 'phosphor-react'
+import { ArrowRight, Check } from 'lucide-react'
 import { useI18n } from '@/lib/i18n-context'
-
-gsap.registerPlugin(ScrollTrigger, useGSAP)
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import Reveal from './Reveal'
+import SpotlightCard from './SpotlightCard'
 
 interface PricingProps {
   onOpenAuth: () => void
 }
 
 const tiers = [
-  {
-    key: 'free',
-    nameKey: 'pricingFree',
-    descKey: 'pricingFreeDesc',
-    price: '$0',
-    featured: false,
-  },
-  {
-    key: 'basic',
-    nameKey: 'pricingBasic',
-    descKey: 'pricingBasicDesc',
-    priceKey: 'pricingBasicPrice',
-    featured: false,
-  },
-  {
-    key: 'starter',
-    nameKey: 'pricingStarter',
-    descKey: 'pricingStarterDesc',
-    priceKey: 'pricingStarterPrice',
-    featured: false,
-  },
-  {
-    key: 'pro',
-    nameKey: 'pricingPro',
-    descKey: 'pricingProDesc',
-    priceKey: 'pricingProPrice',
-    featured: true,
-  },
+  { key: 'free', nameKey: 'pricingFree', descKey: 'pricingFreeDesc', price: '$0', featured: false },
+  { key: 'basic', nameKey: 'pricingBasic', descKey: 'pricingBasicDesc', priceKey: 'pricingBasicPrice', featured: false },
+  { key: 'starter', nameKey: 'pricingStarter', descKey: 'pricingStarterDesc', priceKey: 'pricingStarterPrice', featured: false },
+  { key: 'pro', nameKey: 'pricingPro', descKey: 'pricingProDesc', priceKey: 'pricingProPrice', featured: true },
 ] as const
 
 export default function Pricing({ onOpenAuth }: PricingProps) {
   const { t } = useI18n()
   const L = t.landing as unknown as Record<string, string>
-  const root = useRef<HTMLElement>(null)
-
-  useGSAP(
-    () => {
-      const cards = gsap.utils.toArray<HTMLElement>('.price-card')
-      cards.forEach((card, i) => {
-        gsap.fromTo(
-          card,
-          { y: 50, opacity: 0 },
-          {
-            y: 0,
-            opacity: 1,
-            duration: 0.8,
-            ease: 'power3.out',
-            delay: i * 0.1,
-            scrollTrigger: { trigger: card, start: 'top 88%' },
-          }
-        )
-      })
-    },
-    { scope: root }
-  )
+  const featureMap = t.landing.pricingFeatures as Record<string, string[]>
 
   return (
-    <section ref={root} id="pricing" className="relative py-32 md:py-48 px-4 sm:px-8 overflow-hidden">
-      {/* Ethereal Glass background mesh */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-5%] right-[-10%] w-[45vw] h-[45vw] rounded-full bg-brand/5 blur-[160px] mix-blend-screen" />
-        <div className="absolute bottom-[-15%] left-[-5%] w-[50vw] h-[50vw] rounded-full bg-brand/6 blur-[160px] mix-blend-screen" />
-        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.02]" />
-      </div>
-      <div className="max-w-[1440px] mx-auto relative z-10">
-        <div className="mb-20 max-w-2xl">
-          <div className="flex items-center gap-2 px-3 py-1.5 mb-8 rounded-full bg-surface border border-border backdrop-blur-md w-fit">
-            <Sparkle size={12} weight="fill" className="text-brand" />
-            <span className="text-[10px] text-muted-foreground uppercase tracking-[0.2em] font-medium mt-[1px]">
-              {t.landing.pricingTitle}
-            </span>
-          </div>
-          <h2 className="text-4xl sm:text-5xl md:text-7xl font-serif text-foreground leading-[0.95] tracking-tight">
-            {t.landing.pricingTitle}
-          </h2>
-          <p className="mt-6 text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed font-light">
+    <section id="pricing" className="border-b bg-muted/30 py-24 md:py-32">
+      <div className="mx-auto max-w-6xl px-4 sm:px-8">
+        <Reveal className="mx-auto max-w-2xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">{t.landing.pricingTitle}</h2>
+          <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
             {t.landing.pricingDesc}
           </p>
-        </div>
+        </Reveal>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 items-stretch">
-          {tiers.map((tier) => (
-            <div key={tier.key} className="price-card group">
-              <div
-                className={`p-[1px] rounded-[2rem] h-full transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:-translate-y-2 ${
-                  tier.featured
-                    ? 'bg-gradient-to-b from-brand/40 via-brand/20 to-foreground/5'
-                    : 'bg-gradient-to-b from-foreground/10 to-foreground/[0.02]'
-                }`}
-              >
-                <div className="rounded-[calc(2rem-1px)] bg-card p-8 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] h-full flex flex-col">
-                  <div className="flex items-center justify-between mb-5">
-                    <h3 className="text-xl font-serif text-foreground">
-                      {L[tier.nameKey]}
-                    </h3>
-                    {tier.featured && (
-                      <span className="text-[10px] uppercase tracking-[0.15em] text-brand px-2.5 py-1 rounded-full border border-brand/30">
-                        {t.landing.pricingPopular}
-                      </span>
-                    )}
-                  </div>
+        <div className="mt-14 grid items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {tiers.map((tier, i) => {
+            const price = 'priceKey' in tier ? L[tier.priceKey] : tier.price
+            const features = featureMap[tier.key] ?? []
 
-                  <p className="text-4xl font-serif text-foreground mb-1">
-                    {'priceKey' in tier ? L[tier.priceKey] : tier.price}
-                  </p>
-                  <p className="text-xs text-muted-foreground mb-8">
-                    {L[tier.descKey]}
-                  </p>
+            return (
+              <Reveal key={tier.key} delay={i * 90} className="h-full">
+                <SpotlightCard
+                  className={`h-full gap-6 py-6 hover:-translate-y-1 ${
+                    tier.featured ? 'border-primary shadow-lg ring-1 ring-primary/20' : ''
+                  }`}
+                >
+                  <CardHeader>
+                    <div className="flex items-center justify-between gap-2">
+                      <CardTitle className="text-lg">{L[tier.nameKey]}</CardTitle>
+                      {tier.featured && <Badge>{t.landing.pricingPopular}</Badge>}
+                    </div>
+                    <CardDescription>{L[tier.descKey]}</CardDescription>
+                  </CardHeader>
 
-                  <div className="flex-1 space-y-3 mb-8">
-                    {(t.landing.pricingFeatures as Record<string, string[]>)[tier.key].map((feat, fi) => (
-                      <div key={fi} className="flex items-center gap-2.5">
-                        <Check size={15} className="text-brand shrink-0" weight="bold" />
-                        <span className="text-sm text-muted-foreground">{feat}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <CardContent className="flex flex-1 flex-col gap-6">
+                    <p className="text-4xl font-bold tracking-tight">{price}</p>
+                    <ul className="flex-1 space-y-3">
+                      {features.map((feat, fi) => (
+                        <li key={fi} className="flex items-start gap-2.5 text-sm text-muted-foreground">
+                          <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                          <span>{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
 
-                  <button
-                    onClick={onOpenAuth}
-                    className="group/btn flex items-center justify-center gap-2 w-full px-5 py-3.5 rounded-full bg-foreground text-background text-sm font-medium hover:opacity-90 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-[0.98]"
-                  >
-                    <span>{t.landing.pricingCta}</span>
-                    <span className="w-6 h-6 rounded-full bg-background/10 flex items-center justify-center group-hover/btn:translate-x-1 group-hover/btn:-translate-y-[1px] group-hover/btn:scale-105 transition-all duration-700 ease-[cubic-bezier(0.32,0.72,0,1)]">
-                      <ArrowRight size={12} weight="bold" className="text-background" />
-                    </span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+                  <CardFooter>
+                    <Button
+                      className="group w-full"
+                      variant={tier.featured ? 'default' : 'outline'}
+                      onClick={onOpenAuth}
+                    >
+                      {t.landing.pricingCta}
+                      <ArrowRight className="transition-transform duration-300 group-hover:translate-x-0.5" />
+                    </Button>
+                  </CardFooter>
+                </SpotlightCard>
+              </Reveal>
+            )
+          })}
         </div>
       </div>
     </section>

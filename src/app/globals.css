@@ -115,8 +115,11 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-outfit), "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-plus-jakarta-sans), "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans:
+    var(--font-outfit), "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-serif:
+    var(--font-plus-jakarta-sans), "Plus Jakarta Sans", ui-sans-serif,
+    system-ui, sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -164,6 +167,18 @@
   --color-surface: var(--surface);
   --color-card-hover: var(--card-hover);
   --color-overlay: var(--overlay);
+}
+@theme inline {
+  --animate-marquee: marquee 30s linear infinite;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 @layer base {
@@ -261,10 +276,12 @@
 }
 
 .skeleton-shimmer {
-  background: linear-gradient(90deg,
-      var(--subtle) 0%,
-      var(--card-hover) 50%,
-      var(--subtle) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--subtle) 0%,
+    var(--card-hover) 50%,
+    var(--subtle) 100%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.6s ease-in-out infinite;
 }
@@ -288,7 +305,6 @@
 }
 
 @keyframes blink {
-
   0%,
   100% {
     opacity: 1;
@@ -327,14 +343,16 @@
 
 .animate-progress {
   animation: progress-stripes 1s linear infinite;
-  background-image: linear-gradient(-45deg,
-      rgba(255, 255, 255, 0.06) 25%,
-      transparent 25%,
-      transparent 50%,
-      rgba(255, 255, 255, 0.06) 50%,
-      rgba(255, 255, 255, 0.06) 75%,
-      transparent 75%,
-      transparent);
+  background-image: linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.06) 25%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.06) 75%,
+    transparent 75%,
+    transparent
+  );
   background-size: 20px 20px;
 }
 
